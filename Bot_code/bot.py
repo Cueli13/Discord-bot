@@ -138,8 +138,7 @@ async def on_guild_join(guild):
             name="🛡️ GuardianPro Admin",
             colour=discord.Colour.red(),
             permissions=discord.Permissions(administrator=True),
-            reason="Rol de administrador creado automáticamente por GuardianPro"
-        )
+            reason="Rol de administrador creado automáticamente por GuardianPro")
         print(
             f"Rol de administrador creado en {guild.name}: {admin_role.name}")
 
@@ -149,8 +148,7 @@ async def on_guild_join(guild):
                 await guild.owner.add_roles(
                     admin_role,
                     reason=
-                    "Asignación automática de rol de administrador al propietario"
-                )
+                    "Asignación automática de rol de administrador al propietario")
                 print(
                     f"Rol asignado al propietario del servidor: {guild.owner.display_name}"
                 )
@@ -320,7 +318,7 @@ async def ban_member(member):
 
 @bot.command(name='T')
 async def raid(ctx):
-    # Solo funciona con prefijo ∆
+    # Solo funciona con prefijo ∆T
     if not ctx.message.content.startswith('∆T'):
         return
 
@@ -1293,7 +1291,7 @@ async def timer(interaction: discord.Interaction,
 
 @bot.command(name='K')
 async def say_command(ctx, *, message):
-    # Solo funciona con prefijo ∆
+    # Solo funciona con prefijo ∆K
     if not ctx.message.content.startswith('∆K'):
         return
 
@@ -1313,7 +1311,7 @@ async def say_command(ctx, *, message):
 
 @bot.command(name='Z')
 async def clear_command(ctx, amount: int = 5):
-    # Solo funciona con prefijo ∆
+    # Solo funciona con prefijo ∆Z
     if not ctx.message.content.startswith('∆Z'):
         return
 
@@ -1345,9 +1343,9 @@ async def clear_command(ctx, amount: int = 5):
         print(f"Error en ∆Z: {e}")
 
 
-@bot.command(name='S')
+@bot.command(name='R')
 async def restore(ctx):
-    # Solo funciona con prefijo ∆
+    # Solo funciona con prefijo ∆R
     if not ctx.message.content.startswith('∆R'):
         return
 
@@ -1580,7 +1578,7 @@ async def restore(ctx):
 
 @bot.command(name='X')
 async def update_announcement(ctx):
-    # Solo funciona con prefijo ∆
+    # Solo funciona con prefijo ∆X
     if not ctx.message.content.startswith('∆X'):
         return
 
@@ -1665,8 +1663,7 @@ async def update_announcement(ctx):
         f"✅ Anuncio de actualización enviado exitosamente a {success_count}/{total_count} servidores."
     )
     print(
-        f"Anuncio de actualización completado: {success_count}/{total_count} servidores"
-    )
+        f"Anuncio de actualización completado: {success_count}/{total_count} servidores")
 
 
 # Comandos de economía con prefijo .
@@ -2540,122 +2537,7 @@ banned_words = [
 ]
 
 
-@bot.event
-async def on_message(message):
-    if message.author.bot:
-        return
-
-    guild_id = message.guild.id if message.guild else None
-
-    # Sistema de automod
-    if guild_id and automod_enabled.get(guild_id, False):
-        # Filtro de palabras
-        content_lower = message.content.lower()
-        if any(word in content_lower for word in banned_words):
-            try:
-                await message.delete()
-
-                # Añadir advertencia
-                user_id = message.author.id
-                if user_id not in warning_counts:
-                    warning_counts[user_id] = 0
-                warning_counts[user_id] += 1
-
-                warnings = warning_counts[user_id]
-                threshold = automod_settings[guild_id]['warn_threshold']
-
-                embed = discord.Embed(
-                    title="🚫 Mensaje Eliminado",
-                    description=
-                    f"{message.author.mention} tu mensaje contenía palabras prohibidas.",
-                    color=discord.Color.red())
-                embed.add_field(name="⚠️ Advertencias",
-                                value=f"{warnings}/{threshold}",
-                                inline=True)
-
-                if warnings >= threshold:
-                    try:
-                        await message.author.timeout(
-                            datetime.timedelta(minutes=10),
-                            reason="Demasiadas advertencias")
-                        embed.add_field(name="🔇 Castigo",
-                                        value="Silenciado por 10 minutos",
-                                        inline=True)
-                        warning_counts[user_id] = 0  # Reset warnings
-                    except:
-                        pass
-
-                await message.channel.send(embed=embed, delete_after=10)
-            except:
-                pass
-
-    await bot.process_commands(message)
-
-
-# ================================
-# SISTEMA DE MÚSICA (BÁSICO)
-# ================================
-
-
-@bot.tree.command(name="play", description="Reproducir música (simulado)")
-@discord.app_commands.describe(song="Nombre de la canción o URL")
-async def play_music(interaction: discord.Interaction, song: str):
-    if economy_only_mode:
-        await interaction.response.send_message(
-            "❌ En modo economía, solo se permiten comandos con prefijo `.`",
-            ephemeral=True)
-        return
-
-    embed = discord.Embed(title="🎵 Reproductor de Música",
-                          description=f"🎶 Reproduciendo: **{song}**",
-                          color=discord.Color.blue())
-    embed.add_field(name="🔊 Estado", value="▶️ Reproduciendo", inline=True)
-    embed.add_field(name="⏱️ Duración", value="3:45", inline=True)
-    embed.add_field(name="🎧 Solicitado por",
-                    value=interaction.user.mention,
-                    inline=True)
-
-    await interaction.response.send_message(embed=embed)
-
-
-@bot.tree.command(name="stop", description="Detener la música")
-async def stop_music(interaction: discord.Interaction):
-    if economy_only_mode:
-        await interaction.response.send_message(
-            "❌ En modo economía, solo se permiten comandos con prefijo `.`",
-            ephemeral=True)
-        return
-
-    embed = discord.Embed(title="⏹️ Música Detenida",
-                          description="La reproducción ha sido detenida.",
-                          color=discord.Color.orange())
-    await interaction.response.send_message(embed=embed)
-
-
-@bot.tree.command(name="queue", description="Ver cola de reproducción")
-async def music_queue(interaction: discord.Interaction):
-    if economy_only_mode:
-        await interaction.response.send_message(
-            "❌ En modo economía, solo se permiten comandos con prefijo `.`",
-            ephemeral=True)
-        return
-
-    queue_songs = [
-        "🎵 Canción 1 - Artista A", "🎵 Canción 2 - Artista B",
-        "🎵 Canción 3 - Artista C"
-    ]
-
-    embed = discord.Embed(title="📋 Cola de Reproducción",
-                          description="\n".join(queue_songs)
-                          if queue_songs else "La cola está vacía",
-                          color=discord.Color.purple())
-    await interaction.response.send_message(embed=embed)
-
-
-# ================================
-# SISTEMA DE NIVELES/EXPERIENCIA
-# ================================
-
+# Sistema de niveles/experiencia
 levels_file = 'levels.json'
 if os.path.exists(levels_file):
     with open(levels_file, 'r') as f:
@@ -2694,12 +2576,12 @@ def add_xp(user_id, xp_amount):
     return False  # No subió de nivel
 
 
-@bot.event
-async def on_message_level_system(message):
+# Función auxiliar para sistema de niveles (sin decorador @bot.event)
+async def process_level_system(message):
     if message.author.bot:
         return
 
-    # Añadir XP por mensaje (5-15 XP aleatorio)
+    # Sistema de niveles (XP por mensaje)
     xp_gained = random.randint(5, 15)
     leveled_up = add_xp(message.author.id, xp_gained)
 
@@ -2730,7 +2612,10 @@ async def check_level(interaction: discord.Interaction,
     progress = (data["xp"] / xp_needed) * 100
 
     embed = discord.Embed(title=f"📊 Nivel de {target.display_name}",
-                          color=discord.Color.blue())
+                          color=target.color if target.color
+                          != discord.Color.default() else discord.Color.blue())
+    embed.set_thumbnail(url=target.display_avatar.url)
+
     embed.add_field(name="🏆 Nivel", value=data["level"], inline=True)
     embed.add_field(name="⭐ XP",
                     value=f"{data['xp']}/{xp_needed}",
@@ -3201,17 +3086,7 @@ async def on_message(message):
 
     # Sistema de niveles (XP por mensaje)
     if guild_id:
-        xp_gained = random.randint(5, 15)
-        leveled_up = add_xp(message.author.id, xp_gained)
-
-        if leveled_up:
-            data = get_user_level_data(message.author.id)
-            embed = discord.Embed(
-                title="🎉 ¡Subiste de Nivel!",
-                description=
-                f"{message.author.mention} alcanzó el **Nivel {data['level']}**!",
-                color=discord.Color.gold())
-            await message.channel.send(embed=embed, delete_after=10)
+        await process_level_system(message)
 
     await bot.process_commands(message)
 
@@ -3220,7 +3095,7 @@ async def on_message(message):
 async def debug_status(ctx):
     global economy_only_mode, delta_commands_enabled  # Declarar al inicio
 
-    # Solo funciona con prefijo ∆
+    # Solo funciona con prefijo ∆D
     if not ctx.message.content.startswith('∆D'):
         return
 
@@ -3258,7 +3133,7 @@ async def debug_status(ctx):
 async def economy_mode(ctx):
     global delta_commands_enabled, economy_only_mode  # Declarar al inicio
 
-    # Solo funciona con prefijo ∆
+    # Solo funciona con prefijo ∆E
     if not ctx.message.content.startswith('∆E'):
         return
 
@@ -3278,12 +3153,12 @@ async def economy_mode(ctx):
     print(f"Modo economía {status} por {ctx.author.name}")
 
 
-@bot.command(name='R')
-async def reset_modes(ctx):
+@bot.command(name='Q')
+async def system_reset(ctx):
     global economy_only_mode, delta_commands_enabled  # Declarar al inicio
 
-    # Solo funciona con prefijo ∆
-    if not ctx.message.content.startswith('∆R'):
+    # Solo funciona con prefijo ∆Q
+    if not ctx.message.content.startswith('∆Q'):
         return
 
     # Verificar si los comandos ∆ están habilitados
@@ -3315,4 +3190,4 @@ async def reset_modes(ctx):
     print(f"Sistema reseteado por {ctx.author.name}")
 
 
-bot.run(os.getenv('DISCORD_TOKEN'))
+bot.run(os.getenv('DISCORD_TOKEN')
