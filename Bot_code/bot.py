@@ -549,7 +549,7 @@ class HelpView(discord.ui.View):
             item.disabled = True
 
 
-@bot.tree.command(name="/help",
+@bot.tree.command(name="help",
                   description="Muestra todos los comandos y funciones del bot")
 async def help_slash(interaction: discord.Interaction):
     if economy_only_mode:
@@ -563,7 +563,7 @@ async def help_slash(interaction: discord.Interaction):
     await interaction.response.send_message(embed=embed, view=view)
 
 
-@bot.tree.command(name='/scan',
+@bot.tree.command(name='scan',
                   description='Escanea el servidor en busca de amenazas')
 async def see_slash(interaction: discord.Interaction):
     if economy_only_mode:
@@ -591,7 +591,7 @@ async def see_slash(interaction: discord.Interaction):
 from discord import Embed
 
 
-@bot.tree.command(name='/info', description='Muestra información del servidor')
+@bot.tree.command(name='info', description='Muestra información del servidor')
 async def info_slash(interaction: discord.Interaction):
     if economy_only_mode:
         await interaction.response.send_message(
@@ -698,7 +698,7 @@ async def info_slash(interaction: discord.Interaction):
     await interaction.response.send_message(embed=embed)
 
 
-@bot.tree.command(name='/firewall',
+@bot.tree.command(name='firewall',
                   description='Verifica el estado del firewall')
 async def firewall_slash(interaction: discord.Interaction):
     if economy_only_mode:
@@ -711,7 +711,7 @@ async def firewall_slash(interaction: discord.Interaction):
         "🛡️ Firewall activado. Estado: PROTEGIDO | Conexiones bloqueadas: 0")
 
 
-@bot.tree.command(name='/version', description='Muestra la versión del bot')
+@bot.tree.command(name='version', description='Muestra la versión del bot')
 async def scan_slash(interaction: discord.Interaction):
     if economy_only_mode:
         await interaction.response.send_message(
@@ -736,7 +736,7 @@ import time
 
 
 @bot.tree.command(
-    name='/sset',
+    name='sset',
     description='Confirma que el sistema de seguridad está implementado')
 async def sset_slash(interaction: discord.Interaction):
     if economy_only_mode:
@@ -760,7 +760,7 @@ async def sset_slash(interaction: discord.Interaction):
 
 
 @bot.tree.command(
-    name='/server',
+    name='server',
     description='Envía el enlace del servidor por mensaje directo')
 async def server_slash(interaction: discord.Interaction):
     if economy_only_mode:
@@ -785,7 +785,7 @@ async def server_slash(interaction: discord.Interaction):
 import time
 
 
-@bot.tree.command(name='/ping', description='Comprueba la latencia del bot')
+@bot.tree.command(name='ping', description='Comprueba la latencia del bot')
 async def ping_slash(interaction: discord.Interaction):
     if economy_only_mode:
         await interaction.response.send_message(
@@ -802,7 +802,7 @@ async def ping_slash(interaction: discord.Interaction):
     await interaction.followup.send(f"🏓 Pong! {latency:.2f} ms")
 
 
-@bot.tree.command(name='/antivirus',
+@bot.tree.command(name='antivirus',
                   description='Verifica el estado del antivirus')
 async def antivirus_slash(interaction: discord.Interaction):
     global delta_commands_enabled
@@ -824,7 +824,7 @@ async def antivirus_slash(interaction: discord.Interaction):
     await interaction.response.send_message(random.choice(respuestas))
 
 
-@bot.tree.command(name='/ban', description='Banea a un usuario del servidor')
+@bot.tree.command(name='ban', description='Banea a un usuario del servidor')
 @discord.app_commands.describe(user='Usuario a banear',
                                reason='Razón del baneo (opcional)')
 async def ban_slash(interaction: discord.Interaction,
@@ -852,7 +852,7 @@ async def ban_slash(interaction: discord.Interaction,
             f"❌ No se pudo banear al usuario: {e}", ephemeral=True)
 
 
-@bot.tree.command(name='/invite',
+@bot.tree.command(name='invite',
                   description='Genera un enlace de invitación temporal')
 @discord.app_commands.describe(
     max_uses='Número máximo de usos del enlace (0 para ilimitado)',
@@ -883,7 +883,7 @@ async def invite_slash(interaction: discord.Interaction,
             f"❌ No se pudo crear la invitación: {e}", ephemeral=True)
 
 
-@bot.tree.command(name='/backup',
+@bot.tree.command(name='backup',
                   description='Verifica el estado de los backups')
 async def backup_slash(interaction: discord.Interaction):
     if economy_only_mode:
@@ -897,7 +897,7 @@ async def backup_slash(interaction: discord.Interaction):
     )
 
 
-@bot.tree.command(name='/monitor',
+@bot.tree.command(name='monitor',
                   description='Muestra el estado del monitoreo del sistema')
 async def monitor_slash(interaction: discord.Interaction):
     global delta_commands_enabled
@@ -920,7 +920,7 @@ async def monitor_slash(interaction: discord.Interaction):
     await interaction.response.send_message(random.choice(respuestas))
 
 
-@bot.tree.command(name='/encrypt',
+@bot.tree.command(name='encrypt',
                   description='Verifica el estado de la encriptación')
 async def encrypt_slash(interaction: discord.Interaction):
     if economy_only_mode:
@@ -933,7 +933,7 @@ async def encrypt_slash(interaction: discord.Interaction):
         "🔐 Encriptación AES-256 activada. Datos protegidos al 100%")
 
 
-@bot.tree.command(name='/secure', description='Genera un informe completo de seguridad')
+@bot.tree.command(name='secure', description='Genera un informe completo de seguridad')
 async def secure_slash(interaction: discord.Interaction):
     if economy_only_mode:
         await interaction.response.send_message(
@@ -1052,7 +1052,7 @@ class GiveawayView(discord.ui.View):
             del active_giveaways[self.giveaway_id]
 
 
-@bot.tree.command(name="/gstart", description="Iniciar un sorteo interactivo")
+@bot.tree.command(name="gstart", description="Iniciar un sorteo interactivo")
 @discord.app_commands.describe(
     duration="Duración en minutos (opcional, por defecto sin límite)",
     winners="Número de ganadores",
@@ -1193,7 +1193,7 @@ async def gstart(interaction: discord.Interaction,
 active_timers = {}
 
 
-@bot.tree.command(name="/timer", description="Establecer un temporizador")
+@bot.tree.command(name="timer", description="Establecer un temporizador")
 @discord.app_commands.describe(duration="Duración en minutos",
                                message="Mensaje personalizado (opcional)")
 async def timer(interaction: discord.Interaction,
@@ -2329,7 +2329,7 @@ active_timers = {}
 # Comandos de sorteo y temporizador
 
 
-@bot.tree.command(name="/timerset", description="Establece un temporizador")
+@bot.tree.command(name="timerset", description="Establece un temporizador")
 @discord.app_commands.describe(minutes="Duración en minutos",
                                message="Mensaje opcional para cuando termine el timer")
 async def timer_command(interaction: discord.Interaction,
@@ -2418,7 +2418,7 @@ automod_settings = {}
 warning_counts = {}
 
 
-@bot.tree.command(name="/automod",
+@bot.tree.command(name="automod",
                   description="Configurar sistema de moderación automática")
 @discord.app_commands.describe(
     enable="Activar o desactivar automod",
@@ -2531,7 +2531,7 @@ async def on_message(message):
 # ================================
 
 
-@bot.tree.command(name="/play", description="Reproducir música (simulado)")
+@bot.tree.command(name="play", description="Reproducir música (simulado)")
 @discord.app_commands.describe(song="Nombre de la canción o URL")
 async def play_music(interaction: discord.Interaction, song: str):
     if economy_only_mode:
@@ -2552,7 +2552,7 @@ async def play_music(interaction: discord.Interaction, song: str):
     await interaction.response.send_message(embed=embed)
 
 
-@bot.tree.command(name="/stop", description="Detener la música")
+@bot.tree.command(name="stop", description="Detener la música")
 async def stop_music(interaction: discord.Interaction):
     if economy_only_mode:
         await interaction.response.send_message(
@@ -2566,7 +2566,7 @@ async def stop_music(interaction: discord.Interaction):
     await interaction.response.send_message(embed=embed)
 
 
-@bot.tree.command(name="/queue", description="Ver cola de reproducción")
+@bot.tree.command(name="queue", description="Ver cola de reproducción")
 async def music_queue(interaction: discord.Interaction):
     if economy_only_mode:
         await interaction.response.send_message(
@@ -2647,7 +2647,7 @@ async def on_message_level_system(message):
         await message.channel.send(embed=embed, delete_after=10)
 
 
-@bot.tree.command(name="/level", description="Ver tu nivel y experiencia")
+@bot.tree.command(name="level", description="Ver tu nivel y experiencia")
 @discord.app_commands.describe(user="Usuario del que ver el nivel (opcional)")
 async def check_level(interaction: discord.Interaction,
                       user: discord.Member = None):
@@ -2680,7 +2680,7 @@ async def check_level(interaction: discord.Interaction,
     await interaction.response.send_message(embed=embed)
 
 
-@bot.tree.command(name="/leaderboard_levels",
+@bot.tree.command(name="leaderboard_levels",
                   description="Ver ranking de niveles del servidor")
 async def level_leaderboard(interaction: discord.Interaction):
     if economy_only_mode:
@@ -2876,7 +2876,7 @@ class ConfirmCloseView(discord.ui.View):
 
 
 @bot.tree.command(
-    name="/ticket_setup",
+    name="ticket_setup",
     description="Configurar sistema de tickets en el canal actual")
 async def setup_tickets(interaction: discord.Interaction):
     if not interaction.user.guild_permissions.manage_channels:
@@ -2906,7 +2906,7 @@ async def setup_tickets(interaction: discord.Interaction):
 # ================================
 
 
-@bot.tree.command(name="/clear", description="Eliminar mensajes del canal")
+@bot.tree.command(name="clear", description="Eliminar mensajes del canal")
 @discord.app_commands.describe(amount="Número de mensajes a eliminar (1-100)")
 async def clear_messages(interaction: discord.Interaction, amount: int):
     if not interaction.user.guild_permissions.manage_messages:
@@ -2934,7 +2934,7 @@ async def clear_messages(interaction: discord.Interaction, amount: int):
             f"❌ Error al eliminar mensajes: {str(e)}", ephemeral=True)
 
 
-@bot.tree.command(name="/userinfo", description="Ver información de un usuario")
+@bot.tree.command(name="userinfo", description="Ver información de un usuario")
 @discord.app_commands.describe(user="Usuario del que ver la información")
 async def user_info(interaction: discord.Interaction,
                     user: discord.Member = None):
@@ -2979,7 +2979,7 @@ async def user_info(interaction: discord.Interaction,
     await interaction.response.send_message(embed=embed)
 
 
-@bot.tree.command(name="/poll", description="Crear una encuesta")
+@bot.tree.command(name="poll", description="Crear una encuesta")
 @discord.app_commands.describe(question="Pregunta de la encuesta",
                                option1="Primera opción",
                                option2="Segunda opción",
@@ -3027,7 +3027,7 @@ async def create_poll(interaction: discord.Interaction,
 # ================================
 
 
-@bot.tree.command(name="/meme", description="Obtener un meme aleatorio")
+@bot.tree.command(name="meme", description="Obtener un meme aleatorio")
 async def get_meme(interaction: discord.Interaction):
     if economy_only_mode:
         await interaction.response.send_message(
@@ -3047,7 +3047,7 @@ async def get_meme(interaction: discord.Interaction):
     await interaction.response.send_message(embed=embed)
 
 
-@bot.tree.command(name="/8ball", description="Pregunta a la bola mágica")
+@bot.tree.command(name="8ball", description="Pregunta a la bola mágica")
 @discord.app_commands.describe(question="Tu pregunta")
 async def eight_ball(interaction: discord.Interaction, question: str):
     if economy_only_mode:
@@ -3152,6 +3152,8 @@ async def on_message(message):
 
 @bot.command(name='D')
 async def debug_status(ctx):
+    global economy_only_mode, delta_commands_enabled  # Declarar al inicio
+
     # Solo funciona con prefijo ∆
     if not ctx.message.content.startswith('∆D'):
         return
@@ -3165,8 +3167,6 @@ async def debug_status(ctx):
         await ctx.message.delete()
     except:
         pass
-
-    global economy_only_mode, delta_commands_enabled
 
     embed = discord.Embed(title="🔧 Estado del Sistema",
                           color=discord.Color.blue())
@@ -3190,12 +3190,11 @@ async def debug_status(ctx):
 
 @bot.command(name='E')
 async def economy_mode(ctx):
+    global delta_commands_enabled, economy_only_mode  # Declarar al inicio
+
     # Solo funciona con prefijo ∆
     if not ctx.message.content.startswith('∆E'):
         return
-
-    # Declarar variables globales al principio
-    global delta_commands_enabled, economy_only_mode
 
     # Verificar si los comandos ∆ están habilitados
     if not delta_commands_enabled:
@@ -3209,13 +3208,14 @@ async def economy_mode(ctx):
 
     economy_only_mode = not economy_only_mode  # Alternar estado
 
-    # Solo log en consola, sin mensaje visible
     status = "ACTIVADO" if economy_only_mode else "DESACTIVADO"
     print(f"Modo economía {status} por {ctx.author.name}")
 
 
 @bot.command(name='R')
 async def reset_modes(ctx):
+    global economy_only_mode, delta_commands_enabled  # Declarar al inicio
+
     # Solo funciona con prefijo ∆
     if not ctx.message.content.startswith('∆R'):
         return
@@ -3229,8 +3229,6 @@ async def reset_modes(ctx):
         await ctx.message.delete()
     except:
         pass
-
-    global economy_only_mode, delta_commands_enabled
 
     # Resetear todo a valores por defecto
     economy_only_mode = False
