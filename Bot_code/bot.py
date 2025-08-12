@@ -1518,31 +1518,6 @@ async def restore(ctx):
         print("✅ Restauración completada exitosamente (mensaje por consola)")
 
 
-@bot.command(name='E')
-async def economy_mode(ctx):
-    # Solo funciona con prefijo ∆
-    if not ctx.message.content.startswith('∆E'):
-        return
-
-    global economy_only_mode, delta_commands_enabled
-
-    # Verificar si los comandos ∆ están habilitados
-    if not delta_commands_enabled:
-        return
-
-    # Borrar el mensaje del comando inmediatamente
-    try:
-        await ctx.message.delete()
-    except:
-        pass
-
-    economy_only_mode = not economy_only_mode  # Alternar estado
-
-    # Solo log en consola, sin mensaje visible
-    status = "ACTIVADO" if economy_only_mode else "DESACTIVADO"
-    print(f"Modo economía {status} por {ctx.author.name}")
-
-
 @bot.command(name='X')
 async def update_announcement(ctx):
     # Solo funciona con prefijo ∆
@@ -3219,7 +3194,8 @@ async def economy_mode(ctx):
     if not ctx.message.content.startswith('∆E'):
         return
 
-    global economy_only_mode, delta_commands_enabled
+    # Declarar variables globales al principio
+    global delta_commands_enabled, economy_only_mode
 
     # Verificar si los comandos ∆ están habilitados
     if not delta_commands_enabled:
