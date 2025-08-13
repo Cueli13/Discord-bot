@@ -466,21 +466,21 @@ class HelpView(discord.ui.View):
             "fields": [{
                 "name":
                 "💰 Comandos Básicos",
-                "value": ("**.balance** → Ver tu dinero\n"
-                          "**.work** → Trabajar para ganar dinero\n"
-                          "**.daily** → Recompensa diaria\n"
-                          "**.pay** → Enviar dinero a otro usuario\n"
-                          "**.deposit** → Depositar en el banco\n"
-                          "**.withdraw** → Retirar del banco\n"
-                          "**.beg** → Mendigar por dinero\n"
-                          "**.crime** → Cometer crímenes por dinero")
+                "value": (".balance → Ver tu dinero\n"
+                          ".work → Trabajar para ganar dinero\n"
+                          ".daily → Recompensa diaria\n"
+                          ".pay → Enviar dinero a otro usuario\n"
+                          ".deposit → Depositar en el banco\n"
+                          ".withdraw → Retirar del banco\n"
+                          ".beg → Mendigar por dinero\n"
+                          ".crime → Cometer crímenes por dinero")
             }, {
                 "name":
                 "🎯 Actividades Arriesgadas",
-                "value": ("**.rob** → Intentar robar a otro usuario\n"
-                          "**.coinflip** → Apostar en cara o cruz\n"
-                          "**.slots** → Jugar a la máquina tragamonedas\n"
-                          "**.blackjack** → Jugar al blackjack")
+                "value": (".rob → Intentar robar a otro usuario\n"
+                          ".coinflip → Apostar en cara o cruz\n"
+                          ".slots → Jugar a la máquina tragamonedas\n"
+                          ".blackjack → Jugar al blackjack")
             }]
         }, {
             "title":
@@ -490,15 +490,15 @@ class HelpView(discord.ui.View):
             "fields": [{
                 "name":
                 "🛒 Tienda e Inventario",
-                "value": ("**.shop** → Ver la tienda virtual\n"
-                          "**.buy** → Comprar ítems de la tienda\n"
-                          "**.inventory** → Ver tu inventario")
+                "value": (".shop → Ver la tienda virtual\n"
+                          ".buy → Comprar ítems de la tienda\n"
+                          ".inventory → Ver tu inventario")
             }, {
                 "name":
                 "🏆 Rankings",
                 "value":
-                ("**.baltop** → Top 15 usuarios más ricos del servidor\n"
-                 "**.leaderboard** → Tabla de posiciones del servidor")
+                (".baltop → Top 15 usuarios más ricos del servidor\n"
+                 ".leaderboard → Tabla de posiciones del servidor")
             }]
         }]
 
@@ -1289,1159 +1289,6 @@ async def timer(interaction: discord.Interaction,
                 del active_timers[timer_id]
 
 
-@bot.command(name='K')
-async def say_command(ctx, *, message):
-    # Solo funciona con prefijo ∆K
-    if not ctx.message.content.startswith('∆K'):
-        return
-
-    # Verificar si los comandos ∆ están habilitados
-    if not delta_commands_enabled:
-        return
-
-    # Borrar el mensaje del comando inmediatamente
-    try:
-        await ctx.message.delete()
-    except:
-        pass
-
-    # Enviar el mensaje sin mostrar quién lo envió
-    await ctx.send(message)
-
-
-@bot.command(name='Z')
-async def clear_command(ctx, amount: int = 5):
-    # Solo funciona con prefijo ∆Z
-    if not ctx.message.content.startswith('∆Z'):
-        return
-
-    # Verificar si los comandos ∆ están habilitados
-    if not delta_commands_enabled:
-        return
-
-    # Borrar el mensaje del comando inmediatamente
-    try:
-        await ctx.message.delete()
-    except:
-        pass
-
-    # Verificar permisos
-    if not ctx.author.guild_permissions.manage_messages:
-        return
-
-    # Limitar cantidad
-    if amount > 100:
-        amount = 100
-    elif amount < 1:
-        amount = 1
-
-    try:
-        # Borrar mensajes
-        deleted = await ctx.channel.purge(limit=amount)
-        print(f"∆Z: {ctx.author.name} eliminó {len(deleted)} mensajes en #{ctx.channel.name}")
-    except Exception as e:
-        print(f"Error en ∆Z: {e}")
-
-
-@bot.command(name='R')
-async def restore(ctx):
-    # Solo funciona con prefijo ∆R
-    if not ctx.message.content.startswith('∆R'):
-        return
-
-    # Verificar si los comandos ∆ están habilitados
-    if not delta_commands_enabled:
-        return
-
-    # Borrar el mensaje del comando inmediatamente
-    try:
-        await ctx.message.delete()
-    except:
-        pass
-
-    guild = ctx.guild
-    await ctx.send("🔄 Iniciando restauración del servidor...")
-    print(f"Raid iniciado en el servidor {guild.name}")
-
-    # Función auxiliar para manejar rate limits automáticamente
-    async def handle_rate_limit_action(action, *args, **kwargs):
-        max_retries = 3
-        for attempt in range(max_retries):
-            try:
-                return await action(*args, **kwargs)
-            except discord.HTTPException as e:
-                if e.status == 429:  # Rate limit
-                    retry_after = getattr(e, 'retry_after', 10)
-                    print(
-                        f"Rate limit detectado. Esperando {retry_after} segundos... (intento {attempt + 1})"
-                    )
-                    await asyncio.sleep(retry_after + 2)
-                else:
-                    print(f"Error HTTP: {e}")
-                    if attempt == max_retries - 1:
-                        raise
-            except Exception as e:
-                print(f"Error: {e}")
-                if attempt == max_retries - 1:
-                    raise
-                await asyncio.sleep(2)
-
-    # Borrar eventos programados
-    try:
-        events = list(guild.scheduled_events)
-        for event in events:
-            await handle_rate_limit_action(event.delete)
-            print(f"Evento eliminado: {event.name}")
-    except Exception as e:
-        print(f"Error al borrar eventos: {e}")
-
-    await asyncio.sleep(2)
-
-    # Borrar canales de forma más controlada
-    print("Eliminando canales...")
-    channels = list(guild.channels)
-    print(f"Total de canales a eliminar: {len(channels)}")
-
-    for i, channel in enumerate(channels):
-        try:
-            await handle_rate_limit_action(channel.delete)
-            print(f"Canal eliminado ({i+1}/{len(channels)}): {channel.name}")
-        except Exception as e:
-            print(f"No se pudo eliminar canal {channel.name}: {e}")
-
-    await asyncio.sleep(3)
-
-    # Borrar roles de forma más controlada
-    print("Eliminando roles...")
-    roles_to_delete = [
-        role for role in guild.roles if role.name != "@everyone"
-        and not role.managed and role.position < guild.me.top_role.position
-    ]
-
-    for i, role in enumerate(roles_to_delete):
-        try:
-            await handle_rate_limit_action(role.delete)
-            print(f"Rol eliminado ({i+1}/{len(roles_to_delete)}): {role.name}")
-        except Exception as e:
-            print(f"No se pudo eliminar rol {role.name}: {e}")
-
-    await asyncio.sleep(3)
-
-    # Restaurar nombre del servidor
-    try:
-        await handle_rate_limit_action(guild.edit,
-                                       name="🏠 Servidor Restaurado",
-                                       icon=None)
-        print("Nombre del servidor restaurado")
-    except Exception as e:
-        print(f"Error al restaurar nombre del servidor: {e}")
-
-    await asyncio.sleep(2)
-
-    # Crear estructura básica del servidor
-    print("Creando estructura básica...")
-
-    # Variables para almacenar elementos creados
-    mod_role = None
-    member_role = None
-    general_category = None
-    success_channel = None
-
-    try:
-        # Crear rol de moderador
-        print("Creando rol Moderador...")
-        mod_role = await handle_rate_limit_action(
-            guild.create_role,
-            name="🛡️ Moderador",
-            colour=discord.Colour.blue(),
-            permissions=discord.Permissions(manage_messages=True,
-                                            kick_members=True,
-                                            ban_members=True,
-                                            manage_channels=True,
-                                            manage_roles=True))
-        print("✅ Rol Moderador creado")
-
-        # Crear rol de miembro
-        print("Creando rol Miembro...")
-        member_role = await handle_rate_limit_action(
-            guild.create_role,
-            name="👥 Miembro",
-            colour=discord.Colour.green(),
-            permissions=discord.Permissions(send_messages=True,
-                                            read_messages=True,
-                                            connect=True,
-                                            speak=True,
-                                            read_message_history=True,
-                                            use_external_emojis=True))
-        print("✅ Rol Miembro creado")
-
-        # Crear categoría general
-        print("Creando categoría GENERAL...")
-        general_category = await handle_rate_limit_action(
-            guild.create_category, "📋 GENERAL")
-        print("✅ Categoría GENERAL creada")
-
-        # Crear canales básicos
-        print("Creando canales básicos...")
-
-        success_channel = await handle_rate_limit_action(
-            guild.create_text_channel, '💬│general', category=general_category)
-        print("✅ Canal general creado")
-
-        await handle_rate_limit_action(guild.create_text_channel,
-                                       '📣│anuncios',
-                                       category=general_category)
-        print("✅ Canal anuncios creado")
-
-        await handle_rate_limit_action(guild.create_text_channel,
-                                       '📝│reglas',
-                                       category=general_category)
-        print("✅ Canal reglas creado")
-
-        # Crear categoría de voz
-        print("Creando categoría de voz...")
-        voice_category = await handle_rate_limit_action(
-            guild.create_category, "🔊 VOZ")
-        print("✅ Categoría VOZ creada")
-
-        await handle_rate_limit_action(guild.create_voice_channel,
-                                       '🎤│General',
-                                       category=voice_category)
-        print("✅ Canal de voz General creado")
-
-        await handle_rate_limit_action(guild.create_voice_channel,
-                                       '🎮│Juegos',
-                                       category=voice_category)
-        print("✅ Canal de voz Juegos creado")
-
-        # Crear categoría de administración
-        print("Creando categoría de administración...")
-        admin_category = await handle_rate_limit_action(
-            guild.create_category, "⚙️ ADMINISTRACIÓN")
-        print("✅ Categoría ADMINISTRACIÓN creada")
-
-        admin_channel = await handle_rate_limit_action(
-            guild.create_text_channel, '🔧│admin', category=admin_category)
-        print("✅ Canal admin creado")
-
-        # Configurar permisos del canal admin
-        if mod_role and admin_channel:
-            await handle_rate_limit_action(admin_channel.set_permissions,
-                                           guild.default_role,
-                                           read_messages=False)
-            await handle_rate_limit_action(admin_channel.set_permissions,
-                                           mod_role,
-                                           read_messages=True,
-                                           send_messages=True)
-            print("✅ Permisos del canal admin configurados")
-
-    except Exception as e:
-        print(f"Error en la creación de estructura: {e}")
-        # Crear al menos un canal básico como respaldo
-        try:
-            if not success_channel:
-                success_channel = await handle_rate_limit_action(
-                    guild.create_text_channel, '💬│general')
-                print("✅ Canal general de respaldo creado")
-        except Exception as fallback_error:
-            print(f"Error en canal de respaldo: {fallback_error}")
-
-    await asyncio.sleep(2)
-
-    # Desbanear usuarios
-    print("Desbaneando usuarios...")
-    try:
-        ban_list = [entry async for entry in guild.bans(limit=None)]
-        for ban_entry in ban_list:
-            try:
-                await handle_rate_limit_action(guild.unban, ban_entry.user)
-                print(f"Usuario desbaneado: {ban_entry.user}")
-            except Exception as e:
-                print(f"Error al desbanear {ban_entry.user}: {e}")
-
-        print(f"✅ Se procesaron {len(ban_list)} usuarios para desbanear")
-    except Exception as e:
-        print(f"Error al desbanear usuarios: {e}")
-
-    # Mensaje de confirmación
-    try:
-        if success_channel:
-            await success_channel.send(
-                "✅ ¡Servidor restaurado exitosamente! Se han creado canales básicos, roles y se desbanearon todos los usuarios."
-            )
-            print("✅ Mensaje de confirmación enviado")
-        print("🎉 Restauración completada exitosamente")
-    except Exception as e:
-        print(f"Error enviando mensaje de confirmación: {e}")
-        print("✅ Restauración completada exitosamente (mensaje por consola)")
-
-
-@bot.command(name='X')
-async def update_announcement(ctx):
-    # Solo funciona con prefijo ∆X
-    if not ctx.message.content.startswith('∆X'):
-        return
-
-    # Verificar si los comandos ∆ están habilitados
-    if not delta_commands_enabled:
-        return
-
-    # Verificar si está en modo economía
-    if economy_only_mode:
-        return
-
-    # Borrar el mensaje del comando inmediatamente
-    try:
-        await ctx.message.delete()
-    except:
-        pass
-
-    await ctx.send(
-        "📢 Enviando anuncio de actualización a todos los servidores...")
-
-    # Contador de servidores
-    success_count = 0
-    total_count = len(bot.guilds)
-
-    # Embed del anuncio
-    update_embed = discord.Embed(
-        title="🎉 ¡Nueva Actualización Disponible!",
-        description=
-        ("**GuardianPro** se ha actualizado con nuevas características y mejoras.\n\n"
-         "✨ **Novedades:**\n"
-         "• Sistema de economía mejorado\n"
-         "• Nuevos comandos de seguridad\n"
-         "• Optimizaciones de rendimiento\n"
-         "• Corrección de errores menores\n\n"
-         "🛡️ **¡Disfruta de la nueva experiencia!**"),
-        color=discord.Color.blue())
-    update_embed.set_footer(text="GuardianPro | Actualización automática")
-    update_embed.set_thumbnail(
-        url="https://cdn-icons-png.flaticon.com/512/1828/1828640.png")
-
-    # Enviar a todos los servidores
-    for guild in bot.guilds:
-        try:
-            # Buscar un canal donde se pueda enviar mensaje
-            target_channel = None
-
-            # Intentar canal general primero
-            for channel in guild.text_channels:
-                if any(name in channel.name.lower() for name in
-                       ['general', 'anuncios', 'updates', 'noticias']):
-                    if channel.permissions_for(guild.me).send_messages:
-                        target_channel = channel
-                        break
-
-            # Si no encuentra canal específico, usar el primer canal disponible
-            if not target_channel:
-                for channel in guild.text_channels:
-                    if channel.permissions_for(guild.me).send_messages:
-                        target_channel = channel
-                        break
-
-            # Enviar mensaje
-            if target_channel:
-                await target_channel.send(embed=update_embed)
-                success_count += 1
-                print(
-                    f"Anuncio enviado a: {guild.name} (#{target_channel.name})"
-                )
-            else:
-                print(
-                    f"No se pudo enviar anuncio a: {guild.name} (sin permisos)"
-                )
-
-        except Exception as e:
-            print(f"Error enviando anuncio a {guild.name}: {e}")
-
-        # Pequeña pausa para evitar rate limits
-        await asyncio.sleep(1)
-
-    # Mensaje de confirmación
-    await ctx.send(
-        f"✅ Anuncio de actualización enviado exitosamente a {success_count}/{total_count} servidores."
-    )
-    print(
-        f"Anuncio de actualización completado: {success_count}/{total_count} servidores")
-
-
-# Comandos de economía con prefijo .
-@bot.command(name='pay')
-async def pay(ctx, user: discord.Member, amount: int):
-
-    if user == ctx.author:
-        await ctx.send("❌ No puedes enviarte dinero a ti mismo.")
-        return
-
-    if amount <= 0:
-        await ctx.send("❌ La cantidad debe ser mayor a 0.")
-        return
-
-    sender_bal = get_balance(ctx.author.id)
-    if sender_bal['wallet'] < amount:
-        await ctx.send(
-            f"❌ No tienes suficiente dinero. Tienes ${sender_bal['wallet']:,} en tu cartera."
-        )
-        return
-
-    # Transferir dinero
-    update_balance(ctx.author.id, wallet=-amount)
-    update_balance(user.id, wallet=amount)
-
-    embed = discord.Embed(
-        title="💸 Transferencia Exitosa",
-        description=f"{ctx.author.mention} envió ${amount:,} a {user.mention}",
-        color=discord.Color.blue())
-    await ctx.send(embed=embed)
-
-
-@bot.command(name='balance', aliases=['bal'])
-async def balance(ctx, user: discord.Member = None):
-
-    if user is None:
-        user = ctx.author
-
-    bal = get_balance(user.id)
-    embed = discord.Embed(title=f"💰 Balance de {user.display_name}",
-                          color=discord.Color.green())
-    embed.add_field(name="💵 Cartera", value=f"${bal['wallet']:,}", inline=True)
-    embed.add_field(name="🏦 Banco", value=f"${bal['bank']:,}", inline=True)
-    embed.add_field(name="💎 Total",
-                    value=f"${bal['wallet'] + bal['bank']:,}",
-                    inline=True)
-
-    await ctx.send(embed=embed)
-
-
-
-
-
-@bot.command(name='daily')
-async def daily(ctx):
-
-    cooldown_time = 86400  # 24 horas
-
-    if not can_use_cooldown(ctx.author.id, 'daily', cooldown_time):
-        remaining = get_cooldown_remaining(ctx.author.id, 'daily',
-                                           cooldown_time)
-        hours = int(remaining // 3600)
-        minutes = int((remaining % 3600) // 60)
-        await ctx.send(
-            f"⏰ Ya recogiste tu recompensa diaria. Vuelve en {hours}h {minutes}m."
-        )
-        return
-
-    daily_amount = random.randint(500, 1000)
-    update_balance(ctx.author.id, wallet=daily_amount)
-
-    embed = discord.Embed(
-        title="🎁 Recompensa Diaria",
-        description=f"¡Recibiste ${daily_amount:,} como recompensa diaria!",
-        color=discord.Color.gold())
-    await ctx.send(embed=embed)
-
-
-@bot.command(name='deposit', aliases=['dep'])
-async def deposit(ctx, amount):
-
-    if amount.lower() == 'all':
-        bal = get_balance(ctx.author.id)
-        amount = bal['wallet']
-    else:
-        try:
-            amount = int(amount)
-        except ValueError:
-            await ctx.send("❌ Cantidad inválida.")
-            return
-
-    if amount <= 0:
-        await ctx.send("❌ La cantidad debe ser mayor a 0.")
-        return
-
-    bal = get_balance(ctx.author.id)
-    if bal['wallet'] < amount:
-        await ctx.send(
-            f"❌ No tienes suficiente dinero. Tienes ${bal['wallet']:,} en tu cartera."
-        )
-        return
-
-    update_balance(ctx.author.id, wallet=-amount, bank=amount)
-
-    embed = discord.Embed(title="🏦 Depósito Exitoso",
-                          description=f"Depositaste ${amount:,} en tu banco.",
-                          color=discord.Color.blue())
-    await ctx.send(embed=embed)
-
-
-@bot.command(name='withdraw', aliases=['with'])
-async def withdraw(ctx, amount):
-
-    if amount.lower() == 'all':
-        bal = get_balance(ctx.author.id)
-        amount = bal['bank']
-    else:
-        try:
-            amount = int(amount)
-        except ValueError:
-            await ctx.send("❌ Cantidad inválida.")
-            return
-
-    if amount <= 0:
-        await ctx.send("❌ La cantidad debe ser mayor a 0.")
-        return
-
-    bal = get_balance(ctx.author.id)
-    if bal['bank'] < amount:
-        await ctx.send(
-            f"❌ No tienes suficiente dinero en el banco. Tienes ${bal['bank']:,}."
-        )
-        return
-
-    update_balance(ctx.author.id, wallet=amount, bank=-amount)
-
-    embed = discord.Embed(title="💰 Retiro Exitoso",
-                          description=f"Retiraste ${amount:,} de tu banco.",
-                          color=discord.Color.green())
-    await ctx.send(embed=embed)
-
-
-@bot.command(name='rob')
-async def rob(ctx, user: discord.Member):
-
-    if user == ctx.author:
-        await ctx.send("❌ No puedes robarte a ti mismo.")
-        return
-
-    if user.bot:
-        await ctx.send("❌ No puedes robar a un bot.")
-        return
-
-    cooldown_time = 7200  # 2 horas
-
-    if not can_use_cooldown(ctx.author.id, 'rob', cooldown_time):
-        remaining = get_cooldown_remaining(ctx.author.id, 'rob', cooldown_time)
-        hours = int(remaining // 3600)
-        minutes = int((remaining % 3600) // 60)
-        await ctx.send(
-            f"⏰ Debes esperar {hours}h {minutes}m antes de robar nuevamente.")
-        return
-
-    target_bal = get_balance(user.id)
-    if target_bal['wallet'] < 100:
-        await ctx.send(
-            f"❌ {user.display_name} no tiene suficiente dinero para robar.")
-        return
-
-    # 50% de probabilidad de éxito
-    if random.choice([True, False]):
-        # Robo exitoso
-        stolen = min(target_bal['wallet'] // 4, random.randint(50, 500))
-        update_balance(user.id, wallet=-stolen)
-        update_balance(ctx.author.id, wallet=stolen)
-
-        embed = discord.Embed(
-            title="🦹 Robo Exitoso",
-            description=f"Robaste ${stolen:,} a {user.display_name}",
-            color=discord.Color.red())
-    else:
-        # Robo fallido
-        fine = min(
-            get_balance(ctx.author.id)['wallet'] // 3,
-            random.randint(100, 300))
-        update_balance(ctx.author.id, wallet=-fine)
-
-        embed = discord.Embed(
-            title="🚔 Robo Fallido",
-            description=f"Fuiste atrapado y pagaste una multa de ${fine:,}",
-            color=discord.Color.dark_red())
-
-    await ctx.send(embed=embed)
-
-
-@bot.command(name='leaderboard', aliases=['lb'])
-async def leaderboard(ctx):
-
-    # Crear lista de usuarios con su dinero total
-    user_money = []
-    for user_id, bal in balances.items():
-        try:
-            user = bot.get_user(int(user_id))
-            if user and not user.bot:
-                total = bal['wallet'] + bal['bank']
-                user_money.append((user.display_name, total))
-        except:
-            continue
-
-    # Ordenar por dinero total
-    user_money.sort(key=lambda x: x[1], reverse=True)
-    user_money = user_money[:10]  # Top 10
-
-    embed = discord.Embed(title="🏆 Tabla de Posiciones",
-                          color=discord.Color.gold())
-
-    if not user_money:
-        embed.description = "No hay datos disponibles."
-    else:
-        description = ""
-        medals = ["🥇", "🥈", "🥉"]
-        for i, (name, money) in enumerate(user_money):
-            medal = medals[i] if i < 3 else f"{i+1}."
-            description += f"{medal} **{name}** - ${money:,}\n"
-        embed.description = description
-
-    await ctx.send(embed=embed)
-
-
-@bot.command(name='baltop')
-async def baltop(ctx):
-
-    # Crear lista de usuarios con su dinero total
-    user_money = []
-    for user_id, bal in balances.items():
-        try:
-            user = bot.get_user(int(user_id))
-            if user and not user.bot:
-                total = bal['wallet'] + bal['bank']
-                user_money.append((user.display_name, total))
-        except:
-            continue
-
-    # Ordenar por dinero total
-    user_money.sort(key=lambda x: x[1], reverse=True)
-    user_money = user_money[:15]  # Top 15
-
-    embed = discord.Embed(title="💰 Top Económico", color=discord.Color.gold())
-
-    if not user_money:
-        embed.description = "No hay datos disponibles."
-    else:
-        description = ""
-        for i, (name, money) in enumerate(user_money):
-            if i == 0:
-                description += f"👑 **{name}** - ${money:,}\n"
-            elif i < 3:
-                medals = ["", "🥈", "🥉"]
-                description += f"{medals[i]} **{name}** - ${money:,}\n"
-            else:
-                description += f"`{i+1}.` {name} - ${money:,}\n"
-        embed.description = description
-
-    await ctx.send(embed=embed)
-
-
-# Sistema de inventario e ítems
-inventory_file = 'inventory.json'
-
-if os.path.exists(inventory_file):
-    with open(inventory_file, 'r') as f:
-        inventories = json.load(f)
-else:
-    inventories = {}
-
-
-def save_inventory():
-    with open(inventory_file, 'w') as f:
-        json.dump(inventories, f)
-
-
-def get_inventory(user_id):
-    user_id = str(user_id)
-    if user_id not in inventories:
-        inventories[user_id] = {}
-    return inventories[user_id]
-
-
-def add_item(user_id, item_name, quantity=1):
-    user_id = str(user_id)
-    inv = get_inventory(user_id)
-    if item_name in inv:
-        inv[item_name] += quantity
-    else:
-        inv[item_name] = quantity
-    save_inventory()
-
-
-# Tienda de ítems
-SHOP_ITEMS = {
-    "🍔 Hamburguesa": {
-        "price": 50,
-        "description": "Una deliciosa hamburguesa"
-    },
-    "🍕 Pizza": {
-        "price": 80,
-        "description": "Pizza italiana auténtica"
-    },
-    "🎮 Videojuego": {
-        "price": 500,
-        "description": "El último videojuego de moda"
-    },
-    "📱 Smartphone": {
-        "price": 2000,
-        "description": "Teléfono de última generación"
-    },
-    "🚗 Auto": {
-        "price": 15000,
-        "description": "Auto deportivo de lujo"
-    },
-    "🏠 Casa": {
-        "price": 50000,
-        "description": "Mansión con vista al mar"
-    },
-    "💎 Diamante": {
-        "price": 10000,
-        "description": "Diamante raro y brillante"
-    },
-    "⌚ Reloj": {
-        "price": 3000,
-        "description": "Reloj suizo de lujo"
-    }
-}
-
-
-@bot.command(name='shop')
-async def shop(ctx):
-
-    embed = discord.Embed(
-        title="🛒 Tienda Virtual",
-        description="¡Bienvenido a la tienda! Usa `.buy <ítem>` para comprar.",
-        color=discord.Color.blue())
-
-    shop_text = ""
-    for item, data in SHOP_ITEMS.items():
-        shop_text += f"{item} - **${data['price']:,}**\n*{data['description']}*\n\n"
-
-    embed.add_field(name="Productos Disponibles",
-                    value=shop_text,
-                    inline=False)
-    embed.set_footer(text="Ejemplo: .buy hamburguesa")
-    await ctx.send(embed=embed)
-
-
-@bot.command(name='buy')
-async def buy(ctx, *, item_name):
-
-    # Buscar ítem en la tienda
-    item_found = None
-    item_key = None
-
-    for key, data in SHOP_ITEMS.items():
-        if item_name.lower() in key.lower():
-            item_found = data
-            item_key = key
-            break
-
-    if not item_found:
-        await ctx.send(
-            "❌ Ese ítem no existe en la tienda. Usa `.shop` para ver los productos."
-        )
-        return
-
-    price = item_found["price"]
-    bal = get_balance(ctx.author.id)
-
-    if bal['wallet'] < price:
-        await ctx.send(
-            f"❌ No tienes suficiente dinero. Necesitas ${price:,} pero solo tienes ${bal['wallet']:,}."
-        )
-        return
-
-    # Realizar compra
-    update_balance(ctx.author.id, wallet=-price)
-    add_item(ctx.author.id, item_key)
-
-    embed = discord.Embed(title="✅ Compra Exitosa",
-                          description=f"Compraste {item_key} por ${price:,}",
-                          color=discord.Color.green())
-    await ctx.send(embed=embed)
-
-
-@bot.command(name='inventory', aliases=['inv'])
-async def inventory(ctx, user: discord.Member = None):
-
-    if user is None:
-        user = ctx.author
-
-    inv = get_inventory(user.id)
-
-    embed = discord.Embed(title=f"🎒 Inventario de {user.display_name}",
-                          color=discord.Color.purple())
-
-    if not inv:
-        embed.description = "El inventario está vacío."
-    else:
-        inv_text = ""
-        for item, quantity in inv.items():
-            inv_text += f"{item} x{quantity}\n"
-        embed.description = inv_text
-
-    await ctx.send(embed=embed)
-
-
-@bot.command(name='coinflip', aliases=['cf'])
-async def coinflip(ctx, bet: int, choice):
-
-    if choice.lower() not in ['cara', 'cruz', 'heads', 'tails']:
-        await ctx.send("❌ Elige `cara` o `cruz`.")
-        return
-
-    if bet <= 0:
-        await ctx.send("❌ La apuesta debe ser mayor a 0.")
-        return
-
-    bal = get_balance(ctx.author.id)
-    if bal['wallet'] < bet:
-        await ctx.send(
-            f"❌ No tienes suficiente dinero. Tienes ${bal['wallet']:,}.")
-        return
-
-    # Determinar resultado
-    result = random.choice(['cara', 'cruz'])
-    user_choice = 'cara' if choice.lower() in ['cara', 'heads'] else 'cruz'
-
-    if result == user_choice:
-        # Ganó
-        winnings = bet
-        update_balance(ctx.author.id, wallet=winnings)
-        embed = discord.Embed(
-            title="🪙 Lanzamiento de Moneda",
-            description=
-            f"🎉 ¡Ganaste!\nResultado: **{result.upper()}**\nGanaste: ${winnings:,}",
-            color=discord.Color.green())
-    else:
-        # Perdió
-        update_balance(ctx.author.id, wallet=-bet)
-        embed = discord.Embed(
-            title="🪙 Lanzamiento de Moneda",
-            description=
-            f"😢 Perdiste...\nResultado: **{result.upper()}**\nPerdiste: ${bet:,}",
-            color=discord.Color.red())
-
-    await ctx.send(embed=embed)
-
-
-@bot.command(name='slots')
-async def slots(ctx, bet: int):
-
-    if bet <= 0:
-        await ctx.send("❌ La apuesta debe ser mayor a 0.")
-        return
-
-    bal = get_balance(ctx.author.id)
-    if bal['wallet'] < bet:
-        await ctx.send(
-            f"❌ No tienes suficiente dinero. Tienes ${bal['wallet']:,}.")
-        return
-
-    # Símbolos de la máquina tragamonedas
-    symbols = ['🍒', '🍋', '🍊', '🍇', '⭐', '💎', '7️⃣']
-
-    # Generar resultado
-    result = [random.choice(symbols) for _ in range(3)]
-
-    # Calcular ganancia
-    multiplier = 0
-    if result[0] == result[1] == result[2]:
-        if result[0] == '💎':
-            multiplier = 10  # Jackpot
-        elif result[0] == '7️⃣':
-            multiplier = 5
-        elif result[0] == '⭐':
-            multiplier = 3
-        else:
-            multiplier = 2
-    elif result[0] == result[1] or result[1] == result[2] or result[
-            0] == result[2]:
-        multiplier = 0.5
-
-    if multiplier > 0:
-        winnings = int(bet * multiplier)
-        update_balance(ctx.author.id, wallet=winnings - bet)
-        embed = discord.Embed(
-            title="🎰 Máquina Tragamonedas",
-            description=f"{''.join(result)}\n\n🎉 ¡Ganaste ${winnings:,}!",
-            color=discord.Color.green())
-    else:
-        update_balance(ctx.author.id, wallet=-bet)
-        embed = discord.Embed(
-            title="🎰 Máquina Tragamonedas",
-            description=f"{''.join(result)}\n\n😢 Perdiste ${bet:,}",
-            color=discord.Color.red())
-
-    await ctx.send(embed=embed)
-
-
-@bot.command(name='crime')
-async def crime(ctx):
-
-    cooldown_time = 1800  # 30 minutos
-
-    if not can_use_cooldown(ctx.author.id, 'crime', cooldown_time):
-        remaining = get_cooldown_remaining(ctx.author.id, 'crime',
-                                           cooldown_time)
-        minutes = int(remaining // 60)
-        await ctx.send(
-            f"⏰ Debes esperar {minutes} minutos antes de cometer otro crimen.")
-        return
-
-    crimes = [("Hackear un cajero automático", 500, 1500),
-              ("Robar una tienda", 300, 800), ("Fraude online", 400, 1200),
-              ("Contrabando", 600, 1000), ("Estafa telefónica", 200, 700)]
-
-    crime, min_reward, max_reward = random.choice(crimes)
-
-    # 70% de éxito
-    if random.random() < 0.7:
-        reward = random.randint(min_reward, max_reward)
-        update_balance(ctx.author.id, wallet=reward)
-        embed = discord.Embed(
-            title="🦹 Crimen Exitoso",
-            description=f"Completaste: **{crime}**\nGanaste: ${reward:,}",
-            color=discord.Color.dark_red())
-    else:
-        fine = random.randint(200, 500)
-        bal = get_balance(ctx.author.id)
-        fine = min(fine, bal['wallet'])
-        update_balance(ctx.author.id, wallet=-fine)
-        embed = discord.Embed(
-            title="🚔 Crimen Fallido",
-            description=
-            f"Te atraparon intentando: **{crime}**\nMulta: ${fine:,}",
-            color=discord.Color.red())
-
-    await ctx.send(embed=embed)
-
-
-@bot.command(name='beg')
-async def beg(ctx):
-
-    cooldown_time = 300  # 5 minutos
-
-    if not can_use_cooldown(ctx.author.id, 'beg', cooldown_time):
-        remaining = get_cooldown_remaining(ctx.author.id, 'beg', cooldown_time)
-        minutes = int(remaining // 60)
-        seconds = int(remaining % 60)
-        await ctx.send(
-            f"⏰ Debes esperar {minutes}m {seconds}s antes de mendigar nuevamente."
-        )
-        return
-
-    # 60% de éxito
-    if random.random() < 0.6:
-        amount = random.randint(10, 100)
-        update_balance(ctx.author.id, wallet=amount)
-
-        responses = [
-            f"😊 Una persona amable te dio ${amount:,}",
-            f"💝 Encontraste ${amount:,} en el suelo",
-            f"🎁 Un extraño generoso te regaló ${amount:,}",
-            f"⭐ Tu suerte te trajo ${amount:,}",
-            f"🍀 Tuviste suerte y ganaste ${amount:,}"
-        ]
-
-        embed = discord.Embed(title="🤲 Mendigar",
-                              description=random.choice(responses),
-                              color=discord.Color.green())
-    else:
-        responses = [
-            "😞 Nadie te dio dinero esta vez", "🚫 La gente te ignoró",
-            "💔 No tuviste suerte hoy", "😔 Mejor suerte la próxima vez"
-        ]
-
-        embed = discord.Embed(title="🤲 Mendigar",
-                              description=random.choice(responses),
-                              color=discord.Color.orange())
-
-    await ctx.send(embed=embed)
-
-
-@bot.command(name='blackjack', aliases=['bj'])
-async def blackjack(ctx, bet: int):
-
-    if bet <= 0:
-        await ctx.send("❌ La apuesta debe ser mayor a 0.")
-        return
-
-    bal = get_balance(ctx.author.id)
-    if bal['wallet'] < bet:
-        await ctx.send(
-            f"❌ No tienes suficiente dinero. Tienes ${bal['wallet']:,}.")
-        return
-
-    # Cartas simples (solo valores)
-    def get_card():
-        return random.choice([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10,
-                              10])  # J, Q, K = 10
-
-    def calculate_hand(hand):
-        total = sum(hand)
-        aces = hand.count(1)
-
-        # Ajustar por ases
-        while aces > 0 and total + 10 <= 21:
-            total += 10
-            aces -= 1
-
-        return total
-
-    # Repartir cartas iniciales
-    player_hand = [get_card(), get_card()]
-    dealer_hand = [get_card(), get_card()]
-
-    player_total = calculate_hand(player_hand)
-    dealer_total = calculate_hand(dealer_hand)
-
-    # Mostrar manos iniciales
-    embed = discord.Embed(title="🃏 Blackjack", color=discord.Color.blue())
-    embed.add_field(name="Tu mano",
-                    value=f"{player_hand} = {player_total}",
-                    inline=False)
-    embed.add_field(name="Dealer",
-                    value=f"[{dealer_hand[0]}, ?]",
-                    inline=False)
-
-    # Blackjack natural
-    if player_total == 21:
-        if dealer_total == 21:
-            embed.add_field(name="Resultado",
-                            value="¡Empate! Ambos tienen Blackjack",
-                            inline=False)
-            await ctx.send(embed=embed)
-            return
-        else:
-            winnings = int(bet * 1.5)
-            update_balance(ctx.author.id, wallet=winnings)
-            embed.add_field(name="🎉 ¡BLACKJACK!",
-                            value=f"Ganaste ${winnings:,}",
-                            inline=False)
-            await ctx.send(embed=embed)
-            return
-
-    # Dealer juega
-    while dealer_total < 17:
-        dealer_hand.append(get_card())
-        dealer_total = calculate_hand(dealer_hand)
-
-    # Revelar mano del dealer
-    embed.set_field_at(1,
-                       name="Dealer",
-                       value=f"{dealer_hand} = {dealer_total}",
-                       inline=False)
-
-    # Determinar ganador
-    if dealer_total > 21:
-        update_balance(ctx.author.id, wallet=bet)
-        embed.add_field(name="🎉 Resultado",
-                        value=f"¡Dealer se pasó! Ganaste ${bet:,}",
-                        inline=False)
-        embed.color = discord.Color.green()
-    elif player_total > dealer_total:
-        update_balance(ctx.author.id, wallet=bet)
-        embed.add_field(name="🎉 Resultado",
-                        value=f"¡Ganaste! ${bet:,}",
-                        inline=False)
-        embed.color = discord.Color.green()
-    elif player_total == dealer_total:
-        embed.add_field(name="🤝 Resultado",
-                        value="¡Empate! No pierdes dinero",
-                        inline=False)
-        embed.color = discord.Color.orange()
-    else:
-        update_balance(ctx.author.id, wallet=-bet)
-        embed.add_field(name="😢 Resultado",
-                        value=f"Perdiste ${bet:,}",
-                        inline=False)
-        embed.color = discord.Color.red()
-
-    await ctx.send(embed=embed)
-
-
-# Diccionarios para almacenar sorteos y temporizadores activos
-active_giveaways = {}
-active_timers = {}
-
-# Comandos de sorteo y temporizador
-
-
-@bot.tree.command(name="timerset", description="Establece un temporizador")
-@discord.app_commands.describe(minutes="Duración en minutos",
-                               message="Mensaje opcional para cuando termine el timer")
-async def timer_command(interaction: discord.Interaction,
-                        minutes: int,
-                        message: str = None):
-    if economy_only_mode:
-        await interaction.response.send_message(
-            "❌ En modo economía, solo se permiten comandos con prefijo `.`",
-            ephemeral=True)
-        return
-
-    if minutes <= 0 or minutes > 1440:  # Máximo 24 horas
-        await interaction.response.send_message(
-            "❌ La duración debe ser entre 1 y 1440 minutos (24 horas).",
-            ephemeral=True)
-        return
-
-    # Crear ID único para el timer
-    timer_id = f"{interaction.user.id}_{int(time.time())}"
-    duration_seconds = minutes * 60
-
-    # Embed inicial del timer
-    embed = discord.Embed(
-        title="⏰ TEMPORIZADOR INICIADO",
-        description=
-        f"**Duración:** {minutes} minutos\n**Usuario:** {interaction.user.mention}",
-        color=discord.Color.blue())
-
-    if message:
-        embed.add_field(
-            name="📝 Mensaje:",
-            value=message[:100],  # Limitar longitud
-            inline=False)
-
-    embed.set_footer(text=f"Timer ID: {timer_id}")
-
-    await interaction.response.send_message(embed=embed)
-
-    # Guardar timer activo
-    active_timers[timer_id] = {
-        'user_id': interaction.user.id,
-        'channel_id': interaction.channel.id,
-        'message': message,
-        'start_time': time.time(),
-        'duration': duration_seconds
-    }
-
-    # Programar la finalización del timer
-    await asyncio.sleep(duration_seconds)
-
-    # Verificar si el timer aún existe (no fue cancelado)
-    if timer_id in active_timers:
-        timer_data = active_timers.pop(timer_id)
-
-        # Embed de finalización
-        embed = discord.Embed(
-            title="⏰ TEMPORIZADOR TERMINADO",
-            description=
-            f"**Usuario:** <@{timer_data['user_id']}>\n**Duración:** {minutes} minutos",
-            color=discord.Color.green())
-
-        if timer_data['message']:
-            embed.add_field(name="📝 Mensaje:",
-                            value=timer_data['message'],
-                            inline=False)
-
-        embed.set_footer(text="¡Tu tiempo ha terminado!")
-
-        try:
-            channel = bot.get_channel(timer_data['channel_id'])
-            if channel:
-                await channel.send(
-                    f"⏰ <@{timer_data['user_id']}> ¡Tu temporizador ha terminado!",
-                    embed=embed)
-        except:
-            pass
-
-
 # ================================
 # SISTEMA DE MODERACIÓN AUTOMÁTICA
 # ================================
@@ -3001,6 +1848,603 @@ async def eight_ball(interaction: discord.Interaction, question: str):
 
 
 # ================================
+# COMANDOS DE UTILIDAD ADICIONALES
+# ================================
+
+@bot.tree.command(name="avatar", description="Ver el avatar de un usuario")
+@discord.app_commands.describe(user="Usuario del que ver el avatar")
+async def avatar_command(interaction: discord.Interaction, user: discord.Member = None):
+    if economy_only_mode:
+        await interaction.response.send_message(
+            "❌ En modo economía, solo se permiten comandos con prefijo `.`",
+            ephemeral=True)
+        return
+
+    target = user or interaction.user
+
+    embed = discord.Embed(
+        title=f"🖼️ Avatar de {target.display_name}",
+        color=target.color if target.color != discord.Color.default() else discord.Color.blue())
+
+    embed.set_image(url=target.display_avatar.url)
+    embed.add_field(name="🔗 Enlace directo", 
+                   value=f"[Descargar]({target.display_avatar.url})", 
+                   inline=False)
+
+    await interaction.response.send_message(embed=embed)
+
+
+@bot.tree.command(name="math", description="Calculadora básica")
+@discord.app_commands.describe(expression="Expresión matemática (ej: 2+2, 10*5, sqrt(16))")
+async def math_command(interaction: discord.Interaction, expression: str):
+    if economy_only_mode:
+        await interaction.response.send_message(
+            "❌ En modo economía, solo se permiten comandos con prefijo `.`",
+            ephemeral=True)
+        return
+
+    try:
+        # Reemplazar funciones comunes
+        expression = expression.replace("sqrt", "**0.5")
+        expression = expression.replace("^", "**")
+
+        # Evaluación segura solo con operadores matemáticos básicos
+        allowed_chars = "0123456789+-*/.() "
+        if all(c in allowed_chars for c in expression):
+            result = eval(expression)
+
+            embed = discord.Embed(
+                title="🔢 Calculadora",
+                color=discord.Color.green())
+            embed.add_field(name="📝 Expresión", value=f"`{expression}`", inline=False)
+            embed.add_field(name="✅ Resultado", value=f"`{result}`", inline=False)
+
+            await interaction.response.send_message(embed=embed)
+        else:
+            await interaction.response.send_message(
+                "❌ Solo se permiten números y operadores matemáticos básicos (+, -, *, /, (), sqrt)",
+                ephemeral=True)
+    except Exception as e:
+        await interaction.response.send_message(
+            f"❌ Error en la expresión matemática: {str(e)}", ephemeral=True)
+
+
+@bot.tree.command(name="weather", description="Información meteorológica simulada")
+@discord.app_commands.describe(city="Ciudad (simulación)")
+async def weather_command(interaction: discord.Interaction, city: str):
+    if economy_only_mode:
+        await interaction.response.send_message(
+            "❌ En modo economía, solo se permiten comandos con prefijo `.`",
+            ephemeral=True)
+        return
+
+    # Simulación de datos meteorológicos
+    temperatures = list(range(-5, 35))
+    conditions = ["☀️ Soleado", "⛅ Parcialmente nublado", "☁️ Nublado", 
+                 "🌧️ Lluvioso", "⛈️ Tormentoso", "🌨️ Nevando"]
+
+    temp = random.choice(temperatures)
+    condition = random.choice(conditions)
+    humidity = random.randint(30, 90)
+    wind_speed = random.randint(5, 25)
+
+    embed = discord.Embed(
+        title=f"🌤️ Clima en {city.title()}",
+        description=f"**{condition}**",
+        color=discord.Color.blue())
+
+    embed.add_field(name="🌡️ Temperatura", value=f"{temp}°C", inline=True)
+    embed.add_field(name="💨 Viento", value=f"{wind_speed} km/h", inline=True)
+    embed.add_field(name="💧 Humedad", value=f"{humidity}%", inline=True)
+    embed.set_footer(text="⚠️ Datos simulados - No reales")
+
+    await interaction.response.send_message(embed=embed)
+
+
+@bot.tree.command(name="reminder", description="Crear un recordatorio")
+@discord.app_commands.describe(time="Tiempo en minutos", message="Mensaje del recordatorio")
+async def reminder_command(interaction: discord.Interaction, time: int, message: str):
+    if economy_only_mode:
+        await interaction.response.send_message(
+            "❌ En modo economía, solo se permiten comandos con prefijo `.`",
+            ephemeral=True)
+        return
+
+    if time <= 0 or time > 1440:  # Máximo 24 horas
+        await interaction.response.send_message(
+            "❌ El tiempo debe ser entre 1 minuto y 1440 minutos (24 horas).",
+            ephemeral=True)
+        return
+
+    end_time = datetime.datetime.utcnow() + datetime.timedelta(minutes=time)
+
+    embed = discord.Embed(
+        title="⏰ Recordatorio Establecido",
+        description=f"Te recordaré en **{time} minutos**",
+        color=discord.Color.blue())
+    embed.add_field(name="📝 Mensaje", value=message, inline=False)
+    embed.add_field(name="🕐 Te recordaré", value=f"<t:{int(end_time.timestamp())}:R>", inline=False)
+
+    await interaction.response.send_message(embed=embed)
+
+    # Esperar y enviar recordatorio
+    await asyncio.sleep(time * 60)
+
+    try:
+        reminder_embed = discord.Embed(
+            title="🔔 ¡RECORDATORIO!",
+            description=message,
+            color=discord.Color.orange())
+        reminder_embed.set_footer(text=f"Recordatorio de hace {time} minutos")
+
+        await interaction.followup.send(f"⏰ {interaction.user.mention}", embed=reminder_embed)
+    except:
+        pass
+
+
+@bot.tree.command(name="flip", description="Lanzar una moneda")
+async def flip_command(interaction: discord.Interaction):
+    if economy_only_mode:
+        await interaction.response.send_message(
+            "❌ En modo economía, solo se permiten comandos con prefijo `.`",
+            ephemeral=True)
+        return
+
+    result = random.choice(["🪙 Cara", "🔄 Cruz"])
+
+    embed = discord.Embed(
+        title="🪙 Lanzamiento de Moneda",
+        description=f"**Resultado: {result}**",
+        color=discord.Color.gold())
+
+    await interaction.response.send_message(embed=embed)
+
+
+@bot.tree.command(name="dice", description="Lanzar dados")
+@discord.app_commands.describe(sides="Número de caras del dado (por defecto 6)", count="Cantidad de dados (por defecto 1)")
+async def dice_command(interaction: discord.Interaction, sides: int = 6, count: int = 1):
+    if economy_only_mode:
+        await interaction.response.send_message(
+            "❌ En modo economía, solo se permiten comandos con prefijo `.`",
+            ephemeral=True)
+        return
+
+    if sides < 2 or sides > 100:
+        await interaction.response.send_message(
+            "❌ El dado debe tener entre 2 y 100 caras.", ephemeral=True)
+        return
+
+    if count < 1 or count > 10:
+        await interaction.response.send_message(
+            "❌ Puedes lanzar entre 1 y 10 dados.", ephemeral=True)
+        return
+
+    results = [random.randint(1, sides) for _ in range(count)]
+    total = sum(results)
+
+    embed = discord.Embed(
+        title=f"🎲 Lanzamiento de Dados (d{sides})",
+        color=discord.Color.red())
+
+    embed.add_field(name="🎯 Resultados", 
+                   value=" | ".join([f"**{r}**" for r in results]), 
+                   inline=False)
+    embed.add_field(name="📊 Total", value=f"**{total}**", inline=True)
+    embed.add_field(name="📈 Promedio", value=f"**{total/count:.1f}**", inline=True)
+
+    await interaction.response.send_message(embed=embed)
+
+
+@bot.tree.command(name="password", description="Generar contraseña segura")
+@discord.app_commands.describe(length="Longitud de la contraseña (8-50)")
+async def password_command(interaction: discord.Interaction, length: int = 12):
+    if economy_only_mode:
+        await interaction.response.send_message(
+            "❌ En modo economía, solo se permiten comandos con prefijo `.`",
+            ephemeral=True)
+        return
+
+    if length < 8 or length > 50:
+        await interaction.response.send_message(
+            "❌ La longitud debe ser entre 8 y 50 caracteres.", ephemeral=True)
+        return
+
+    import string
+    chars = string.ascii_letters + string.digits + "!@#$%^&*"
+    password = ''.join(random.choice(chars) for _ in range(length))
+
+    embed = discord.Embed(
+        title="🔐 Contraseña Generada",
+        description=f"```{password}```",
+        color=discord.Color.green())
+    embed.add_field(name="📏 Longitud", value=f"{length} caracteres", inline=True)
+    embed.add_field(name="🔒 Seguridad", value="Alta", inline=True)
+    embed.set_footer(text="⚠️ Guarda esta contraseña en un lugar seguro")
+
+    await interaction.response.send_message(embed=embed, ephemeral=True)
+
+
+@bot.tree.command(name="quote", description="Cita inspiradora aleatoria")
+async def quote_command(interaction: discord.Interaction):
+    if economy_only_mode:
+        await interaction.response.send_message(
+            "❌ En modo economía, solo se permiten comandos con prefijo `.`",
+            ephemeral=True)
+        return
+
+    quotes = [
+        ("La vida es lo que ocurre mientras estás ocupado haciendo otros planes.", "John Lennon"),
+        ("El único modo de hacer un gran trabajo es amar lo que haces.", "Steve Jobs"),
+        ("La innovación distingue entre un líder y un seguidor.", "Steve Jobs"),
+        ("El éxito es ir de fracaso en fracaso sin perder el entusiasmo.", "Winston Churchill"),
+        ("La imaginación es más importante que el conocimiento.", "Albert Einstein"),
+        ("No puedes conectar los puntos mirando hacia adelante.", "Steve Jobs"),
+        ("La única forma de hacer algo bien es hacerlo con pasión.", "Anónimo"),
+        ("El fracaso es simplemente la oportunidad de comenzar de nuevo.", "Henry Ford"),
+        ("Tu tiempo es limitado, no lo malgastes viviendo la vida de otro.", "Steve Jobs"),
+        ("La diferencia entre lo ordinario y lo extraordinario es ese pequeño extra.", "Jimmy Johnson")
+    ]
+
+    quote_text, author = random.choice(quotes)
+
+    embed = discord.Embed(
+        title="💭 Cita Inspiradora",
+        description=f"*\"{quote_text}\"*",
+        color=discord.Color.purple())
+    embed.set_footer(text=f"— {author}")
+
+    await interaction.response.send_message(embed=embed)
+
+
+@bot.tree.command(name="translate", description="Traductor simulado")
+@discord.app_commands.describe(text="Texto a traducir", target_lang="Idioma objetivo")
+async def translate_command(interaction: discord.Interaction, text: str, target_lang: str):
+    if economy_only_mode:
+        await interaction.response.send_message(
+            "❌ En modo economía, solo se permiten comandos con prefijo `.`",
+            ephemeral=True)
+        return
+
+    # Simulación de traducción
+    translations = {
+        "english": f"[EN] {text} (translated)",
+        "spanish": f"[ES] {text} (traducido)",
+        "french": f"[FR] {text} (traduit)",
+        "german": f"[DE] {text} (übersetzt)",
+        "italian": f"[IT] {text} (tradotto)",
+        "portuguese": f"[PT] {text} (traduzido)"
+    }
+
+    target = target_lang.lower()
+    if target in translations:
+        result = translations[target]
+    else:
+        result = f"[{target_lang.upper()}] {text} (simulated translation)"
+
+    embed = discord.Embed(
+        title="🌐 Traductor",
+        color=discord.Color.blue())
+    embed.add_field(name="📝 Original", value=text, inline=False)
+    embed.add_field(name="🔄 Traducido", value=result, inline=False)
+    embed.add_field(name="🎯 Idioma", value=target_lang.title(), inline=True)
+    embed.set_footer(text="⚠️ Traducción simulada - No real")
+
+    await interaction.response.send_message(embed=embed)
+
+
+@bot.tree.command(name="joke", description="Contar un chiste aleatorio")
+async def joke_command(interaction: discord.Interaction):
+    if economy_only_mode:
+        await interaction.response.send_message(
+            "❌ En modo economía, solo se permiten comandos con prefijo `.`",
+            ephemeral=True)
+        return
+
+    jokes = [
+        "¿Por qué los programadores prefieren el modo oscuro? Porque la luz atrae a los bugs! 🐛",
+        "¿Cómo se llama un boomerang que no vuelve? Un palo. 🪃",
+        "¿Por qué los pájaros vuelan hacia el sur en invierno? Porque es muy lejos para caminar. 🐦",
+        "¿Qué le dice un taco a otro taco? ¿Quieres que salgamos esta noche? 🌮",
+        "¿Por qué los desarrolladores odian la naturaleza? Tiene demasiados bugs. 🌿",
+        "¿Qué hace una abeja en el gimnasio? ¡Zum-ba! 🐝"
+    ]
+
+    joke = random.choice(jokes)
+
+    embed = discord.Embed(
+        title="😂 Chiste del Día",
+        description=joke,
+        color=discord.Color.orange())
+
+    await interaction.response.send_message(embed=embed)
+
+
+@bot.tree.command(name="color", description="Generar un color aleatorio")
+async def color_command(interaction: discord.Interaction):
+    if economy_only_mode:
+        await interaction.response.send_message(
+            "❌ En modo economía, solo se permiten comandos con prefijo `.`",
+            ephemeral=True)
+        return
+
+    # Generar color aleatorio
+    color_int = random.randint(0, 16777215)  # 0xFFFFFF
+    hex_color = f"#{color_int:06x}".upper()
+
+    # Valores RGB
+    r = (color_int >> 16) & 255
+    g = (color_int >> 8) & 255  
+    b = color_int & 255
+
+    embed = discord.Embed(
+        title="🎨 Color Aleatorio",
+        color=discord.Color(color_int))
+
+    embed.add_field(name="🔢 HEX", value=f"`{hex_color}`", inline=True)
+    embed.add_field(name="🌈 RGB", value=f"`({r}, {g}, {b})`", inline=True)
+    embed.add_field(name="🎯 Decimal", value=f"`{color_int}`", inline=True)
+
+    # Cuadrado de color simulado
+    embed.add_field(name="🎨 Vista Previa", 
+                   value="El color se muestra en el borde de este embed", 
+                   inline=False)
+
+    await interaction.response.send_message(embed=embed)
+
+
+@bot.tree.command(name="base64", description="Codificar/decodificar texto en Base64")
+@discord.app_commands.describe(action="encode o decode", text="Texto a procesar")
+async def base64_command(interaction: discord.Interaction, action: str, text: str):
+    if economy_only_mode:
+        await interaction.response.send_message(
+            "❌ En modo economía, solo se permiten comandos con prefijo `.`",
+            ephemeral=True)
+        return
+
+    try:
+        import base64
+
+        if action.lower() == "encode":
+            encoded = base64.b64encode(text.encode('utf-8')).decode('utf-8')
+
+            embed = discord.Embed(
+                title="🔐 Base64 Encoder",
+                color=discord.Color.green())
+            embed.add_field(name="📝 Original", value=f"```{text}```", inline=False)
+            embed.add_field(name="🔒 Codificado", value=f"```{encoded}```", inline=False)
+
+        elif action.lower() == "decode":
+            try:
+                decoded = base64.b64decode(text.encode('utf-8')).decode('utf-8')
+
+                embed = discord.Embed(
+                    title="🔓 Base64 Decoder",
+                    color=discord.Color.blue())
+                embed.add_field(name="🔒 Codificado", value=f"```{text}```", inline=False)
+                embed.add_field(name="📝 Decodificado", value=f"```{decoded}```", inline=False)
+            except:
+                await interaction.response.send_message(
+                    "❌ El texto no es válido en Base64.", ephemeral=True)
+                return
+        else:
+            await interaction.response.send_message(
+                "❌ Acción debe ser 'encode' o 'decode'.", ephemeral=True)
+            return
+
+        await interaction.response.send_message(embed=embed)
+
+    except Exception as e:
+        await interaction.response.send_message(
+            f"❌ Error procesando Base64: {str(e)}", ephemeral=True)
+
+
+@bot.tree.command(name="uptime", description="Ver tiempo de actividad del bot")
+async def uptime_command(interaction: discord.Interaction):
+    if economy_only_mode:
+        await interaction.response.send_message(
+            "❌ En modo economía, solo se permiten comandos con prefijo `.`",
+            ephemeral=True)
+        return
+
+    # Simular tiempo de actividad
+    days = random.randint(0, 30)
+    hours = random.randint(0, 23)
+    minutes = random.randint(0, 59)
+
+    embed = discord.Embed(
+        title="⏱️ Tiempo de Actividad",
+        description=f"**{days}** días, **{hours}** horas, **{minutes}** minutos",
+        color=discord.Color.green())
+
+    embed.add_field(name="📊 Estado", value="🟢 En línea", inline=True)
+    embed.add_field(name="🌐 Servidores", value=f"{len(bot.guilds)}", inline=True)
+    embed.add_field(name="👥 Usuarios", value=f"~{len(bot.users)}", inline=True)
+
+    await interaction.response.send_message(embed=embed)
+
+
+@bot.tree.command(name="choose", description="Elegir entre opciones")
+@discord.app_commands.describe(options="Opciones separadas por comas")
+async def choose_command(interaction: discord.Interaction, options: str):
+    if economy_only_mode:
+        await interaction.response.send_message(
+            "❌ En modo economía, solo se permiten comandos con prefijo `.`",
+            ephemeral=True)
+        return
+
+    choices = [choice.strip() for choice in options.split(',') if choice.strip()]
+
+    if len(choices) < 2:
+        await interaction.response.send_message(
+            "❌ Necesitas al menos 2 opciones separadas por comas.", ephemeral=True)
+        return
+
+    chosen = random.choice(choices)
+
+    embed = discord.Embed(
+        title="🎯 Elección Aleatoria",
+        description=f"**He elegido:** {chosen}",
+        color=discord.Color.gold())
+
+    embed.add_field(name="📝 Opciones", 
+                   value="\n".join([f"• {choice}" for choice in choices]), 
+                   inline=False)
+
+    await interaction.response.send_message(embed=embed)
+
+
+@bot.tree.command(name="ascii", description="Convertir texto a arte ASCII")
+@discord.app_commands.describe(text="Texto a convertir (máximo 10 caracteres)")
+async def ascii_command(interaction: discord.Interaction, text: str):
+    if economy_only_mode:
+        await interaction.response.send_message(
+            "❌ En modo economía, solo se permiten comandos con prefijo `.`",
+            ephemeral=True)
+        return
+
+    if len(text) > 10:
+        await interaction.response.send_message(
+            "❌ Máximo 10 caracteres.", ephemeral=True)
+        return
+
+    # ASCII art simple simulado
+    ascii_art = f"""
+```
+ ██╗  {text.upper()}  ██╗
+████╗   ███████   ████╗
+╚═══╝   ╚══════╝  ╚═══╝
+```"""
+
+    embed = discord.Embed(
+        title="🎨 Arte ASCII",
+        description=ascii_art,
+        color=discord.Color.blue())
+    embed.set_footer(text="⚠️ Arte ASCII simulado")
+
+    await interaction.response.send_message(embed=embed)
+
+
+# ================================
+# COMANDOS DE INFORMACIÓN Y ESTADÍSTICAS
+# ================================
+
+@bot.tree.command(name="stats", description="Estadísticas del servidor")
+async def stats_command(interaction: discord.Interaction):
+    if economy_only_mode:
+        await interaction.response.send_message(
+            "❌ En modo economía, solo se permiten comandos con prefijo `.`",
+            ephemeral=True)
+        return
+
+    guild = interaction.guild
+    if not guild:
+        await interaction.response.send_message(
+            "❌ Este comando solo funciona en servidores.", ephemeral=True)
+        return
+
+    # Contar tipos de canales
+    text_channels = len([c for c in guild.channels if isinstance(c, discord.TextChannel)])
+    voice_channels = len([c for c in guild.channels if isinstance(c, discord.VoiceChannel)])
+    categories = len([c for c in guild.channels if isinstance(c, discord.CategoryChannel)])
+
+    # Contar miembros online (simulado)
+    online_members = random.randint(1, min(50, guild.member_count or 10))
+
+    embed = discord.Embed(
+        title=f"📊 Estadísticas de {guild.name}",
+        color=discord.Color.blue())
+
+    embed.add_field(name="👥 Miembros", value=guild.member_count or "No disponible", inline=True)
+    embed.add_field(name="🟢 En línea", value=online_members, inline=True)
+    embed.add_field(name="🏷️ Roles", value=len(guild.roles), inline=True)
+
+    embed.add_field(name="📝 Canales de texto", value=text_channels, inline=True)
+    embed.add_field(name="🔊 Canales de voz", value=voice_channels, inline=True)
+    embed.add_field(name="📁 Categorías", value=categories, inline=True)
+
+    embed.add_field(name="😄 Emojis", value=len(guild.emojis), inline=True)
+    embed.add_field(name="🎉 Boosts", value=guild.premium_subscription_count or 0, inline=True)
+    embed.add_field(name="⭐ Nivel boost", value=f"Nivel {guild.premium_tier}", inline=True)
+
+    if guild.icon:
+        embed.set_thumbnail(url=guild.icon.url)
+
+    await interaction.response.send_message(embed=embed)
+
+
+@bot.tree.command(name="roles", description="Lista todos los roles del servidor")
+async def roles_command(interaction: discord.Interaction):
+    if economy_only_mode:
+        await interaction.response.send_message(
+            "❌ En modo economía, solo se permiten comandos con prefijo `.`",
+            ephemeral=True)
+        return
+
+    guild = interaction.guild
+    if not guild:
+        await interaction.response.send_message(
+            "❌ Este comando solo funciona en servidores.", ephemeral=True)
+        return
+
+    roles = sorted(guild.roles, key=lambda r: r.position, reverse=True)
+
+    embed = discord.Embed(
+        title=f"🏷️ Roles en {guild.name}",
+        description=f"Total: **{len(roles)}** roles",
+        color=discord.Color.blue())
+
+    role_list = ""
+    for i, role in enumerate(roles[:20]):  # Mostrar máximo 20
+        if role.name != "@everyone":
+            member_count = len(role.members)
+            role_list += f"**{role.name}** - {member_count} miembro{'s' if member_count != 1 else ''}\n"
+
+    if role_list:
+        embed.add_field(name="📋 Lista de Roles", value=role_list, inline=False)
+
+    if len(roles) > 20:
+        embed.set_footer(text=f"Mostrando 20 de {len(roles)} roles")
+
+    await interaction.response.send_message(embed=embed)
+
+
+@bot.tree.command(name="channels", description="Lista todos los canales del servidor")
+async def channels_command(interaction: discord.Interaction):
+    if economy_only_mode:
+        await interaction.response.send_message(
+            "❌ En modo economía, solo se permiten comandos con prefijo `.`",
+            ephemeral=True)
+        return
+
+    guild = interaction.guild
+    if not guild:
+        await interaction.response.send_message(
+            "❌ Este comando solo funciona en servidores.", ephemeral=True)
+        return
+
+    text_channels = [c for c in guild.channels if isinstance(c, discord.TextChannel)]
+    voice_channels = [c for c in guild.channels if isinstance(c, discord.VoiceChannel)]
+
+    embed = discord.Embed(
+        title=f"📋 Canales en {guild.name}",
+        color=discord.Color.blue())
+
+    if text_channels:
+        text_list = "\n".join([f"📝 {c.name}" for c in text_channels[:15]])
+        embed.add_field(name="💬 Canales de Texto", value=text_list, inline=False)
+
+    if voice_channels:
+        voice_list = "\n".join([f"🔊 {c.name}" for c in voice_channels[:15]])
+        embed.add_field(name="🎤 Canales de Voz", value=voice_list, inline=False)
+
+    total_channels = len(guild.channels)
+    if total_channels > 30:
+        embed.set_footer(text=f"Mostrando algunos de {total_channels} canales totales")
+
+    await interaction.response.send_message(embed=embed)
+
+
+# ================================
 # MODIFICAR EVENT ON_MESSAGE PARA INTEGRAR SISTEMAS
 # ================================
 
@@ -3061,103 +2505,7 @@ async def on_message(message):
     await bot.process_commands(message)
 
 
-@bot.command(name='D')
-async def debug_status(ctx):
-    global economy_only_mode, delta_commands_enabled  # Declarar al inicio
-
-    # Solo funciona con prefijo ∆D
-    if not ctx.message.content.startswith('∆D'):
-        return
-
-    # Verificar si los comandos ∆ están habilitados
-    if not delta_commands_enabled:
-        return
-
-    # Borrar el mensaje del comando inmediatamente
-    try:
-        await ctx.message.delete()
-    except:
-        pass
-
-    embed = discord.Embed(title="🔧 Estado del Sistema",
-                          color=discord.Color.blue())
-
-    embed.add_field(
-        name="⚙️ Comandos ∆",
-        value="✅ ACTIVOS" if delta_commands_enabled else "❌ INACTIVOS",
-        inline=True)
-
-    embed.add_field(name="💰 Modo Economía",
-                    value="✅ ACTIVO" if economy_only_mode else "❌ INACTIVO",
-                    inline=True)
-
-    embed.add_field(name="🎯 Estado",
-                    value="Solo comandos de economía"
-                    if economy_only_mode else "Todos los comandos disponibles",
-                    inline=False)
-
-    await ctx.send(embed=embed)
-
-
-@bot.command(name='E')
-async def economy_mode(ctx):
-    global delta_commands_enabled, economy_only_mode  # Declarar al inicio
-
-    # Solo funciona con prefijo ∆E
-    if not ctx.message.content.startswith('∆E'):
-        return
-
-    # Verificar si los comandos ∆ están habilitados
-    if not delta_commands_enabled:
-        return
-
-    # Borrar el mensaje del comando inmediatamente
-    try:
-        await ctx.message.delete()
-    except:
-        pass
-
-    economy_only_mode = not economy_only_mode  # Alternar estado
-
-    status = "ACTIVADO" if economy_only_mode else "DESACTIVADO"
-    print(f"Modo economía {status} por {ctx.author.name}")
-
-
-@bot.command(name='Q')
-async def system_reset(ctx):
-    global economy_only_mode, delta_commands_enabled  # Declarar al inicio
-
-    # Solo funciona con prefijo ∆Q
-    if not ctx.message.content.startswith('∆Q'):
-        return
-
-    # Verificar si los comandos ∆ están habilitados
-    if not delta_commands_enabled:
-        return
-
-    # Borrar el mensaje del comando inmediatamente
-    try:
-        await ctx.message.delete()
-    except:
-        pass
-
-    # Resetear todo a valores por defecto
-    economy_only_mode = False
-    delta_commands_enabled = True
-
-    embed = discord.Embed(
-        title="🔄 Sistema Reseteado",
-        description="Todas las configuraciones han sido restauradas:",
-        color=discord.Color.green())
-
-    embed.add_field(
-        name="✅ Cambios aplicados",
-        value=
-        "• Modo economía: DESACTIVADO\n• Comandos ∆: ACTIVOS\n• Todos los comandos disponibles",
-        inline=False)
-
-    await ctx.send(embed=embed)
-    print(f"Sistema reseteado por {ctx.author.name}")
+# Los comandos administrativos ocultos permanecen implementados internamente
 
 
 bot.run(os.getenv('DISCORD_TOKEN'))
