@@ -2502,7 +2502,729 @@ async def on_message(message):
     if guild_id:
         await process_level_system(message)
 
+    # CRÍTICO: Procesar comandos de economía y otros
     await bot.process_commands(message)
+
+
+# ================================
+# COMANDOS DE ECONOMÍA CON PREFIJO .
+# ================================
+
+@bot.command(name='balance')
+async def balance_command(ctx):
+    """Ver tu balance de dinero"""
+    user_data = get_balance(ctx.author.id)
+    total = user_data['wallet'] + user_data['bank']
+    
+    embed = discord.Embed(title="💰 Tu Balance", color=discord.Color.green())
+    embed.add_field(name="👛 Billetera", value=f"${user_data['wallet']:,}", inline=True)
+    embed.add_field(name="🏦 Banco", value=f"${user_data['bank']:,}", inline=True)
+    embed.add_field(name="💎 Total", value=f"${total:,}", inline=True)
+    embed.set_footer(text=f"Balance de {ctx.author.display_name}")
+    
+    await ctx.send(embed=embed)
+
+@bot.command(name='work')
+async def work_command(ctx):
+    """Trabajar para ganar dinero"""
+    if not can_use_cooldown(ctx.author.id, 'work', 3600):  # 1 hora
+        remaining = get_cooldown_remaining(ctx.author.id, 'work', 3600)
+        minutes = int(remaining // 60)
+        seconds = int(remaining % 60)
+        await ctx.send(f"⏰ Debes esperar **{minutes}m {seconds}s** antes de trabajar de nuevo.")
+        return
+    
+    jobs = [
+        ("👨‍💻 Programador", 500, 1200),
+        ("🏪 Cajero", 300, 800),
+        ("🚚 Conductor", 400, 900),
+        ("👨‍🍳 Chef", 350, 750),
+        ("📚 Bibliotecario", 250, 600),
+        ("🧹 Conserje", 200, 500),
+        ("📦 Repartidor", 300, 700)
+    ]
+    
+    job_name, min_pay, max_pay = random.choice(jobs)
+    earnings = random.randint(min_pay, max_pay)
+    
+    update_balance(ctx.author.id, earnings, 0)
+    
+    embed = discord.Embed(title="💼 Trabajo Completado", color=discord.Color.green())
+    embed.add_field(name="👷 Trabajo", value=job_name, inline=True)
+    embed.add_field(name="💰 Ganaste", value=f"${earnings:,}", inline=True)
+    embed.set_footer(text="¡Buen trabajo! Vuelve en 1 hora.")
+    
+    await ctx.send(embed=embed)
+
+@bot.command(name='daily')
+async def daily_command(ctx):
+    """Recompensa diaria"""
+    if not can_use_cooldown(ctx.author.id, 'daily', 86400):  # 24 horas
+        remaining = get_cooldown_remaining(ctx.author.id, 'daily', 86400)
+        hours = int(remaining // 3600)
+        minutes = int((remaining % 3600) // 60)
+        await ctx.send(f"⏰ Ya recogiste tu recompensa diaria. Vuelve en **{hours}h {minutes}m**.")
+        return
+    
+    daily_amount = random.randint(800, 1500)
+    update_balance(ctx.author.id, daily_amount, 0)
+    
+    embed = discord.Embed(title="🎁 Recompensa Diaria", color=discord.Color.gold())
+    embed.add_field(name="💰 Ganaste", value=f"${daily_amount:,}", inline=True)
+    embed.add_field(name="⏰ Próxima", value="En 24 horas", inline=True)
+    embed.set_footer(text="¡Vuelve mañana para más!")
+    
+    await ctx.send(embed=embed)
+
+@bot.command(name='pay')
+async def pay_command(ctx, member: discord.Member = None, amount: int = None):
+    """Enviar dinero a otro usuario"""
+    if not member or not amount:
+        await ctx.send("❌ Uso: `.pay @usuario cantidad`")
+        return
+    
+    if member.bot:
+        await ctx.send("❌ No puedes enviar dinero a un bot.")
+        return
+    
+    if member.id == ctx.author.id:
+        await ctx.send("❌ No puedes enviarte dinero a ti mismo.")
+        return
+    
+    if amount <= 0:
+        await ctx.send("❌ La cantidad debe ser mayor a 0.")
+        return
+    
+    sender_balance = get_balance(ctx.author.id)
+    if sender_balance['wallet'] < amount:
+        await ctx.send(f"❌ No tienes suficiente dinero. Tienes ${sender_balance['wallet']:,}")
+        return
+    
+    # Transferir dinero
+    update_balance(ctx.author.id, -amount, 0)
+    update_balance(member.id, amount, 0)
+    
+    embed = discord.Embed(title="💸 Transferencia Exitosa", color=discord.Color.green())
+    embed.add_field(name="👤 Enviaste", value=f"${amount:,} a {member.mention}", inline=False)
+    embed.set_footer(text="¡Transferencia completada!")
+    
+    await ctx.send(embed=embed)
+
+@bot.command(name='deposit')
+async def deposit_command(ctx, amount=None):
+    """Depositar dinero en el banco"""
+    if not amount:
+        await ctx.send("❌ Uso: `.deposit cantidad` o `.deposit all`")
+        return
+    
+    user_balance = get_balance(ctx.author.id)
+    
+    if amount.lower() == 'all':
+        amount = user_balance['wallet']
+    else:
+        try:
+            amount = int(amount)
+        except ValueError:
+            await ctx.send("❌ Cantidad inválida.")
+            return
+    
+    if amount <= 0:
+        await ctx.send("❌ La cantidad debe ser mayor a 0.")
+        return
+    
+    if user_balance['wallet'] < amount:
+        await ctx.send(f"❌ No tienes suficiente dinero. Tienes ${user_balance['wallet']:,}")
+        return
+    
+    update_balance(ctx.author.id, -amount, amount)
+    
+    embed = discord.Embed(title="🏦 Depósito Exitoso", color=discord.Color.blue())
+    embed.add_field(name="💰 Depositaste", value=f"${amount:,}", inline=True)
+    embed.add_field(name="🏦 Nuevo balance bancario", value=f"${user_balance['bank'] + amount:,}", inline=True)
+    
+    await ctx.send(embed=embed)
+
+@bot.command(name='withdraw')
+async def withdraw_command(ctx, amount=None):
+    """Retirar dinero del banco"""
+    if not amount:
+        await ctx.send("❌ Uso: `.withdraw cantidad` o `.withdraw all`")
+        return
+    
+    user_balance = get_balance(ctx.author.id)
+    
+    if amount.lower() == 'all':
+        amount = user_balance['bank']
+    else:
+        try:
+            amount = int(amount)
+        except ValueError:
+            await ctx.send("❌ Cantidad inválida.")
+            return
+    
+    if amount <= 0:
+        await ctx.send("❌ La cantidad debe ser mayor a 0.")
+        return
+    
+    if user_balance['bank'] < amount:
+        await ctx.send(f"❌ No tienes suficiente dinero en el banco. Tienes ${user_balance['bank']:,}")
+        return
+    
+    update_balance(ctx.author.id, amount, -amount)
+    
+    embed = discord.Embed(title="🏦 Retiro Exitoso", color=discord.Color.blue())
+    embed.add_field(name="💰 Retiraste", value=f"${amount:,}", inline=True)
+    embed.add_field(name="👛 Nuevo balance de billetera", value=f"${user_balance['wallet'] + amount:,}", inline=True)
+    
+    await ctx.send(embed=embed)
+
+@bot.command(name='beg')
+async def beg_command(ctx):
+    """Mendigar por dinero"""
+    if not can_use_cooldown(ctx.author.id, 'beg', 300):  # 5 minutos
+        remaining = get_cooldown_remaining(ctx.author.id, 'beg', 300)
+        minutes = int(remaining // 60)
+        seconds = int(remaining % 60)
+        await ctx.send(f"⏰ Debes esperar **{minutes}m {seconds}s** antes de mendigar de nuevo.")
+        return
+    
+    success_chance = random.random()
+    
+    if success_chance > 0.3:  # 70% de éxito
+        amount = random.randint(50, 200)
+        update_balance(ctx.author.id, amount, 0)
+        
+        messages = [
+            f"🪙 Un extraño te dio ${amount}!",
+            f"💝 Alguien se compadeció de ti y te dio ${amount}!",
+            f"🙏 Una persona bondadosa te donó ${amount}!",
+            f"✨ Encontraste ${amount} en el suelo!"
+        ]
+        
+        await ctx.send(random.choice(messages))
+    else:
+        messages = [
+            "😔 Nadie te dio dinero esta vez...",
+            "🚫 La gente te ignoró.",
+            "😅 No tuviste suerte esta vez."
+        ]
+        
+        await ctx.send(random.choice(messages))
+
+@bot.command(name='crime')
+async def crime_command(ctx):
+    """Cometer crímenes por dinero (riesgoso)"""
+    if not can_use_cooldown(ctx.author.id, 'crime', 1800):  # 30 minutos
+        remaining = get_cooldown_remaining(ctx.author.id, 'crime', 1800)
+        minutes = int(remaining // 60)
+        seconds = int(remaining % 60)
+        await ctx.send(f"⏰ Debes esperar **{minutes}m {seconds}s** antes de cometer otro crimen.")
+        return
+    
+    crimes = [
+        ("🏪 Robar una tienda", 200, 800),
+        ("🚗 Robar un auto", 500, 1200),
+        ("💻 Hackear un banco", 800, 2000),
+        ("💎 Robar joyería", 600, 1500),
+        ("🏛️ Robar un museo", 1000, 2500)
+    ]
+    
+    crime_name, min_reward, max_reward = random.choice(crimes)
+    success_chance = random.random()
+    
+    if success_chance > 0.4:  # 60% de éxito
+        reward = random.randint(min_reward, max_reward)
+        update_balance(ctx.author.id, reward, 0)
+        
+        embed = discord.Embed(title="🎭 Crimen Exitoso", color=discord.Color.green())
+        embed.add_field(name="🔫 Crimen", value=crime_name, inline=True)
+        embed.add_field(name="💰 Ganaste", value=f"${reward:,}", inline=True)
+        embed.set_footer(text="¡Escapaste sin ser atrapado!")
+        
+        await ctx.send(embed=embed)
+    else:
+        fine = random.randint(100, 500)
+        user_balance = get_balance(ctx.author.id)
+        
+        if user_balance['wallet'] >= fine:
+            update_balance(ctx.author.id, -fine, 0)
+            
+        embed = discord.Embed(title="🚔 Te Atraparon", color=discord.Color.red())
+        embed.add_field(name="🔫 Crimen", value=crime_name, inline=True)
+        embed.add_field(name="💸 Multa", value=f"${fine:,}", inline=True)
+        embed.set_footer(text="¡La policía te atrapó!")
+        
+        await ctx.send(embed=embed)
+
+@bot.command(name='rob')
+async def rob_command(ctx, member: discord.Member = None):
+    """Intentar robar a otro usuario"""
+    if not member:
+        await ctx.send("❌ Uso: `.rob @usuario`")
+        return
+    
+    if member.bot:
+        await ctx.send("❌ No puedes robar a un bot.")
+        return
+    
+    if member.id == ctx.author.id:
+        await ctx.send("❌ No puedes robarte a ti mismo.")
+        return
+    
+    if not can_use_cooldown(ctx.author.id, 'rob', 3600):  # 1 hora
+        remaining = get_cooldown_remaining(ctx.author.id, 'rob', 3600)
+        minutes = int(remaining // 60)
+        await ctx.send(f"⏰ Debes esperar **{minutes}m** antes de robar de nuevo.")
+        return
+    
+    target_balance = get_balance(member.id)
+    if target_balance['wallet'] < 500:
+        await ctx.send(f"❌ {member.mention} no tiene suficiente dinero para robar (mínimo $500).")
+        return
+    
+    success_chance = random.random()
+    
+    if success_chance > 0.5:  # 50% de éxito
+        stolen_amount = random.randint(100, min(target_balance['wallet'] // 3, 1000))
+        
+        update_balance(member.id, -stolen_amount, 0)
+        update_balance(ctx.author.id, stolen_amount, 0)
+        
+        embed = discord.Embed(title="💰 Robo Exitoso", color=discord.Color.green())
+        embed.add_field(name="🎯 Víctima", value=member.mention, inline=True)
+        embed.add_field(name="💸 Robaste", value=f"${stolen_amount:,}", inline=True)
+        embed.set_footer(text="¡Escapaste con el dinero!")
+        
+        await ctx.send(embed=embed)
+    else:
+        fine = random.randint(200, 600)
+        user_balance = get_balance(ctx.author.id)
+        
+        if user_balance['wallet'] >= fine:
+            update_balance(ctx.author.id, -fine, 0)
+        
+        embed = discord.Embed(title="🚫 Robo Fallido", color=discord.Color.red())
+        embed.add_field(name="🎯 Objetivo", value=member.mention, inline=True)
+        embed.add_field(name="💸 Multa", value=f"${fine:,}", inline=True)
+        embed.set_footer(text="¡Te atraparon intentando robar!")
+        
+        await ctx.send(embed=embed)
+
+@bot.command(name='coinflip')
+async def coinflip_command(ctx, choice=None, amount: int = None):
+    """Apostar en cara o cruz"""
+    if not choice or not amount:
+        await ctx.send("❌ Uso: `.coinflip cara/cruz cantidad`")
+        return
+    
+    if choice.lower() not in ['cara', 'cruz', 'heads', 'tails']:
+        await ctx.send("❌ Elige 'cara' o 'cruz'.")
+        return
+    
+    if amount <= 0:
+        await ctx.send("❌ La cantidad debe ser mayor a 0.")
+        return
+    
+    user_balance = get_balance(ctx.author.id)
+    if user_balance['wallet'] < amount:
+        await ctx.send(f"❌ No tienes suficiente dinero. Tienes ${user_balance['wallet']:,}")
+        return
+    
+    # Normalizar elección
+    user_choice = 'cara' if choice.lower() in ['cara', 'heads'] else 'cruz'
+    
+    # Lanzar moneda
+    result = random.choice(['cara', 'cruz'])
+    
+    if user_choice == result:
+        # Ganó
+        winnings = amount
+        update_balance(ctx.author.id, winnings, 0)
+        
+        embed = discord.Embed(title="🪙 Coinflip - ¡GANASTE!", color=discord.Color.green())
+        embed.add_field(name="🎯 Tu elección", value=user_choice.title(), inline=True)
+        embed.add_field(name="🎰 Resultado", value=f"🪙 {result.title()}", inline=True)
+        embed.add_field(name="💰 Ganaste", value=f"${winnings:,}", inline=True)
+    else:
+        # Perdió
+        update_balance(ctx.author.id, -amount, 0)
+        
+        embed = discord.Embed(title="🪙 Coinflip - Perdiste", color=discord.Color.red())
+        embed.add_field(name="🎯 Tu elección", value=user_choice.title(), inline=True)
+        embed.add_field(name="🎰 Resultado", value=f"🪙 {result.title()}", inline=True)
+        embed.add_field(name="💸 Perdiste", value=f"${amount:,}", inline=True)
+    
+    await ctx.send(embed=embed)
+
+@bot.command(name='slots')
+async def slots_command(ctx, amount: int = None):
+    """Jugar a la máquina tragamonedas"""
+    if not amount:
+        await ctx.send("❌ Uso: `.slots cantidad`")
+        return
+    
+    if amount <= 0:
+        await ctx.send("❌ La cantidad debe ser mayor a 0.")
+        return
+    
+    user_balance = get_balance(ctx.author.id)
+    if user_balance['wallet'] < amount:
+        await ctx.send(f"❌ No tienes suficiente dinero. Tienes ${user_balance['wallet']:,}")
+        return
+    
+    # Símbolos de la máquina
+    symbols = ['🍒', '🍋', '🍊', '🍇', '⭐', '💎', '7️⃣']
+    weights = [30, 25, 20, 15, 5, 3, 2]  # Probabilidades
+    
+    # Girar slots
+    result = [random.choices(symbols, weights=weights)[0] for _ in range(3)]
+    
+    # Determinar premio
+    if result[0] == result[1] == result[2]:
+        # Tres iguales
+        if result[0] == '💎':
+            multiplier = 10
+        elif result[0] == '7️⃣':
+            multiplier = 8
+        elif result[0] == '⭐':
+            multiplier = 5
+        else:
+            multiplier = 3
+        
+        winnings = amount * multiplier
+        update_balance(ctx.author.id, winnings - amount, 0)  # -amount porque ya se restó la apuesta
+        
+        embed = discord.Embed(title="🎰 Slots - ¡JACKPOT!", color=discord.Color.gold())
+        embed.add_field(name="🎯 Resultado", value=" ".join(result), inline=False)
+        embed.add_field(name="💰 Ganaste", value=f"${winnings:,} (x{multiplier})", inline=True)
+        
+    elif result[0] == result[1] or result[1] == result[2] or result[0] == result[2]:
+        # Dos iguales
+        winnings = amount
+        # No se actualiza balance (empate)
+        
+        embed = discord.Embed(title="🎰 Slots - ¡Empate!", color=discord.Color.orange())
+        embed.add_field(name="🎯 Resultado", value=" ".join(result), inline=False)
+        embed.add_field(name="💫 Resultado", value="¡Recuperaste tu apuesta!", inline=True)
+        
+    else:
+        # Perdió
+        update_balance(ctx.author.id, -amount, 0)
+        
+        embed = discord.Embed(title="🎰 Slots - Perdiste", color=discord.Color.red())
+        embed.add_field(name="🎯 Resultado", value=" ".join(result), inline=False)
+        embed.add_field(name="💸 Perdiste", value=f"${amount:,}", inline=True)
+    
+    await ctx.send(embed=embed)
+
+@bot.command(name='blackjack')
+async def blackjack_command(ctx, amount: int = None):
+    """Jugar al blackjack"""
+    if not amount:
+        await ctx.send("❌ Uso: `.blackjack cantidad`")
+        return
+    
+    if amount <= 0:
+        await ctx.send("❌ La cantidad debe ser mayor a 0.")
+        return
+    
+    user_balance = get_balance(ctx.author.id)
+    if user_balance['wallet'] < amount:
+        await ctx.send(f"❌ No tienes suficiente dinero. Tienes ${user_balance['wallet']:,}")
+        return
+    
+    # Cartas simples (valores)
+    cards = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K']
+    
+    def card_value(card):
+        if card in ['J', 'Q', 'K']:
+            return 10
+        elif card == 'A':
+            return 11  # Se ajustará después si es necesario
+        else:
+            return int(card)
+    
+    def calculate_hand(hand):
+        total = sum(card_value(card) for card in hand)
+        aces = hand.count('A')
+        
+        # Ajustar ases si es necesario
+        while total > 21 and aces > 0:
+            total -= 10
+            aces -= 1
+        
+        return total
+    
+    # Repartir cartas iniciales
+    player_hand = [random.choice(cards), random.choice(cards)]
+    dealer_hand = [random.choice(cards)]  # Dealer solo muestra una carta inicialmente
+    
+    player_total = calculate_hand(player_hand)
+    
+    embed = discord.Embed(title="🃏 Blackjack", color=discord.Color.blue())
+    embed.add_field(name="🙋 Tus cartas", value=" ".join(player_hand) + f" (Total: {player_total})", inline=False)
+    embed.add_field(name="🤵 Dealer", value=dealer_hand[0] + " ❓", inline=False)
+    
+    # Verificar blackjack natural
+    if player_total == 21:
+        # Dealer toma segunda carta
+        dealer_hand.append(random.choice(cards))
+        dealer_total = calculate_hand(dealer_hand)
+        
+        if dealer_total == 21:
+            # Empate
+            embed.add_field(name="🤝 Resultado", value="¡Empate! Ambos tienen Blackjack", inline=False)
+            embed.color = discord.Color.orange()
+        else:
+            # Player gana con blackjack
+            winnings = int(amount * 1.5)
+            update_balance(ctx.author.id, winnings, 0)
+            embed.add_field(name="🎉 ¡BLACKJACK!", value=f"¡Ganaste ${winnings:,}!", inline=False)
+            embed.color = discord.Color.gold()
+        
+        await ctx.send(embed=embed)
+        return
+    
+    # Juego normal - dealer toma cartas hasta 17+
+    while calculate_hand(dealer_hand) < 17:
+        dealer_hand.append(random.choice(cards))
+    
+    dealer_total = calculate_hand(dealer_hand)
+    
+    # Determinar ganador
+    embed.add_field(name="🤵 Dealer final", value=" ".join(dealer_hand) + f" (Total: {dealer_total})", inline=False)
+    
+    if dealer_total > 21:
+        # Dealer se pasa
+        winnings = amount
+        update_balance(ctx.author.id, winnings, 0)
+        embed.add_field(name="🎉 ¡GANASTE!", value=f"Dealer se pasó. Ganaste ${winnings:,}!", inline=False)
+        embed.color = discord.Color.green()
+    elif player_total > dealer_total:
+        # Player gana
+        winnings = amount
+        update_balance(ctx.author.id, winnings, 0)
+        embed.add_field(name="🎉 ¡GANASTE!", value=f"Ganaste ${winnings:,}!", inline=False)
+        embed.color = discord.Color.green()
+    elif player_total == dealer_total:
+        # Empate
+        embed.add_field(name="🤝 Empate", value="¡Recuperaste tu apuesta!", inline=False)
+        embed.color = discord.Color.orange()
+    else:
+        # Player pierde
+        update_balance(ctx.author.id, -amount, 0)
+        embed.add_field(name="😔 Perdiste", value=f"Perdiste ${amount:,}", inline=False)
+        embed.color = discord.Color.red()
+    
+    await ctx.send(embed=embed)
+
+# Sistema de tienda
+shop_items = {
+    "laptop": {"name": "💻 Laptop Gaming", "price": 50000, "description": "Laptop para juegos de alta gama"},
+    "phone": {"name": "📱 Smartphone", "price": 15000, "description": "Último modelo de teléfono inteligente"},
+    "car": {"name": "🚗 Auto Deportivo", "price": 200000, "description": "Auto deportivo de lujo"},
+    "house": {"name": "🏠 Casa", "price": 1000000, "description": "Casa de dos plantas"},
+    "yacht": {"name": "🛥️ Yate", "price": 5000000, "description": "Yate de lujo privado"},
+    "pizza": {"name": "🍕 Pizza", "price": 500, "description": "Pizza deliciosa recién hecha"},
+    "coffee": {"name": "☕ Café Premium", "price": 200, "description": "Café de especialidad"},
+    "book": {"name": "📚 Libro", "price": 300, "description": "Libro de programación avanzada"},
+    "watch": {"name": "⌚ Reloj", "price": 8000, "description": "Reloj inteligente de marca"},
+    "headphones": {"name": "🎧 Audífonos", "price": 2500, "description": "Audífonos inalámbricos premium"}
+}
+
+# Archivo de inventarios
+inventory_file = 'inventories.json'
+if os.path.exists(inventory_file):
+    with open(inventory_file, 'r') as f:
+        inventories = json.load(f)
+else:
+    inventories = {}
+
+def save_inventories():
+    with open(inventory_file, 'w') as f:
+        json.dump(inventories, f)
+
+def get_inventory(user_id):
+    user_id = str(user_id)
+    if user_id not in inventories:
+        inventories[user_id] = {}
+    return inventories[user_id]
+
+def add_item_to_inventory(user_id, item_id):
+    user_id = str(user_id)
+    inventory = get_inventory(user_id)
+    if item_id in inventory:
+        inventory[item_id] += 1
+    else:
+        inventory[item_id] = 1
+    save_inventories()
+
+@bot.command(name='shop')
+async def shop_command(ctx):
+    """Ver la tienda virtual"""
+    embed = discord.Embed(title="🛒 Tienda Virtual", color=discord.Color.blue())
+    embed.description = "Usa `.buy <artículo>` para comprar"
+    
+    for item_id, item in shop_items.items():
+        embed.add_field(
+            name=f"{item['name']} - ${item['price']:,}",
+            value=f"`{item_id}` - {item['description']}",
+            inline=False
+        )
+    
+    embed.set_footer(text="Ejemplo: .buy laptop")
+    await ctx.send(embed=embed)
+
+@bot.command(name='buy')
+async def buy_command(ctx, item_id=None):
+    """Comprar ítems de la tienda"""
+    if not item_id:
+        await ctx.send("❌ Uso: `.buy <artículo>`\nUsa `.shop` para ver artículos disponibles.")
+        return
+    
+    if item_id not in shop_items:
+        await ctx.send("❌ Ese artículo no existe. Usa `.shop` para ver la tienda.")
+        return
+    
+    item = shop_items[item_id]
+    user_balance = get_balance(ctx.author.id)
+    
+    if user_balance['wallet'] < item['price']:
+        await ctx.send(f"❌ No tienes suficiente dinero. Necesitas ${item['price']:,} pero tienes ${user_balance['wallet']:,}")
+        return
+    
+    # Comprar artículo
+    update_balance(ctx.author.id, -item['price'], 0)
+    add_item_to_inventory(ctx.author.id, item_id)
+    
+    embed = discord.Embed(title="🛍️ Compra Exitosa", color=discord.Color.green())
+    embed.add_field(name="🎁 Compraste", value=item['name'], inline=True)
+    embed.add_field(name="💰 Precio", value=f"${item['price']:,}", inline=True)
+    embed.set_footer(text="¡Disfruta tu nueva compra!")
+    
+    await ctx.send(embed=embed)
+
+@bot.command(name='inventory')
+async def inventory_command(ctx):
+    """Ver tu inventario"""
+    inventory = get_inventory(ctx.author.id)
+    
+    if not inventory:
+        embed = discord.Embed(title="🎒 Tu Inventario", description="Tu inventario está vacío.", color=discord.Color.orange())
+        embed.add_field(name="💡 Tip", value="Usa `.shop` para comprar artículos", inline=False)
+        await ctx.send(embed=embed)
+        return
+    
+    embed = discord.Embed(title="🎒 Tu Inventario", color=discord.Color.green())
+    
+    total_value = 0
+    for item_id, quantity in inventory.items():
+        if item_id in shop_items:
+            item = shop_items[item_id]
+            value = item['price'] * quantity
+            total_value += value
+            
+            embed.add_field(
+                name=f"{item['name']} x{quantity}",
+                value=f"Valor: ${value:,}",
+                inline=True
+            )
+    
+    embed.add_field(name="💎 Valor Total", value=f"${total_value:,}", inline=False)
+    await ctx.send(embed=embed)
+
+@bot.command(name='baltop')
+async def baltop_command(ctx):
+    """Top 15 usuarios más ricos del servidor"""
+    if not balances:
+        await ctx.send("❌ No hay datos de balance disponibles.")
+        return
+    
+    # Crear lista de usuarios con sus balances totales
+    user_balances = []
+    for user_id, data in balances.items():
+        try:
+            user = bot.get_user(int(user_id))
+            if user and not user.bot:
+                total = data['wallet'] + data['bank']
+                if total > 0:  # Solo usuarios con dinero
+                    user_balances.append((user.display_name, total, data['wallet'], data['bank']))
+        except:
+            continue
+    
+    # Ordenar por balance total
+    user_balances.sort(key=lambda x: x[1], reverse=True)
+    user_balances = user_balances[:15]  # Top 15
+    
+    if not user_balances:
+        await ctx.send("❌ No hay suficientes usuarios con balance para mostrar.")
+        return
+    
+    embed = discord.Embed(title="💰 Top 15 Más Ricos", color=discord.Color.gold())
+    
+    description = ""
+    medals = ["🥇", "🥈", "🥉"]
+    
+    for i, (name, total, wallet, bank) in enumerate(user_balances):
+        medal = medals[i] if i < 3 else f"{i+1}."
+        description += f"{medal} **{name}** - ${total:,}\n"
+        if i < 5:  # Mostrar detalles para top 5
+            description += f"    💰 Billetera: ${wallet:,} | 🏦 Banco: ${bank:,}\n"
+        description += "\n"
+    
+    embed.description = description
+    embed.set_footer(text=f"Ranking del servidor • {len(user_balances)} usuarios")
+    
+    await ctx.send(embed=embed)
+
+@bot.command(name='leaderboard')
+async def leaderboard_command(ctx):
+    """Tabla de posiciones del servidor"""
+    # Combinar datos de economía y niveles
+    combined_data = []
+    
+    for user_id in set(list(balances.keys()) + list(user_levels.keys())):
+        try:
+            user = bot.get_user(int(user_id))
+            if user and not user.bot:
+                # Datos de economía
+                balance_data = balances.get(user_id, {"wallet": 0, "bank": 0})
+                total_money = balance_data['wallet'] + balance_data['bank']
+                
+                # Datos de niveles
+                level_data = user_levels.get(user_id, {"level": 1, "messages": 0})
+                
+                combined_data.append((
+                    user.display_name,
+                    total_money,
+                    level_data['level'],
+                    level_data['messages']
+                ))
+        except:
+            continue
+    
+    if not combined_data:
+        await ctx.send("❌ No hay suficientes datos para mostrar el leaderboard.")
+        return
+    
+    # Ordenar por nivel y luego por dinero
+    combined_data.sort(key=lambda x: (x[2], x[1]), reverse=True)
+    combined_data = combined_data[:10]  # Top 10
+    
+    embed = discord.Embed(title="🏆 Leaderboard General", color=discord.Color.purple())
+    
+    description = ""
+    medals = ["🥇", "🥈", "🥉"]
+    
+    for i, (name, money, level, messages) in enumerate(combined_data):
+        medal = medals[i] if i < 3 else f"{i+1}."
+        description += f"{medal} **{name}**\n"
+        description += f"    🏆 Nivel {level} | 💰 ${money:,} | 💬 {messages} msgs\n\n"
+    
+    embed.description = description
+    embed.set_footer(text="Ranking combinado de nivel y economía")
+    
+    await ctx.send(embed=embed)
 
 
 # Los comandos administrativos ocultos permanecen implementados internamente
