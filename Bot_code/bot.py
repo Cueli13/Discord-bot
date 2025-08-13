@@ -1714,36 +1714,7 @@ async def balance(ctx, user: discord.Member = None):
     await ctx.send(embed=embed)
 
 
-@bot.command(name='work')
-async def work(ctx):
 
-    cooldown_time = 3600  # 1 hora
-
-    if not can_use_cooldown(ctx.author.id, 'work', cooldown_time):
-        remaining = get_cooldown_remaining(ctx.author.id, 'work',
-                                           cooldown_time)
-        hours = int(remaining // 3600)
-        minutes = int((remaining % 3600) // 60)
-        await ctx.send(
-            f"⏰ Debes esperar {hours}h {minutes}m antes de trabajar nuevamente."
-        )
-        return
-
-    # Trabajos disponibles
-    jobs = [("Programador", 800, 1500), ("Delivery", 400, 800),
-            ("Diseñador", 600, 1200), ("Streamer", 300, 1000),
-            ("Músico", 500, 900)]
-
-    job, min_pay, max_pay = random.choice(jobs)
-    earnings = random.randint(min_pay, max_pay)
-
-    update_balance(ctx.author.id, wallet=earnings)
-
-    embed = discord.Embed(
-        title="💼 Trabajo Completado",
-        description=f"Trabajaste como **{job}** y ganaste ${earnings:,}",
-        color=discord.Color.green())
-    await ctx.send(embed=embed)
 
 
 @bot.command(name='daily')
@@ -3023,8 +2994,7 @@ async def eight_ball(interaction: discord.Interaction, question: str):
 
     embed = discord.Embed(
         title="🎱 Bola Mágica",
-        description=
-        f"**Pregunta:** {question}\n\n**Respuesta:** {random.choice(responses)}",
+        description=f"**Pregunta:** {question}\n\n**Respuesta:** {random.choice(responses)}",
         color=discord.Color.purple())
 
     await interaction.response.send_message(embed=embed)
@@ -3190,4 +3160,4 @@ async def system_reset(ctx):
     print(f"Sistema reseteado por {ctx.author.name}")
 
 
-bot.run(os.getenv('DISCORD_TOKEN')
+bot.run(os.getenv('DISCORD_TOKEN'))
