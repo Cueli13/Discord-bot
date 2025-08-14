@@ -778,7 +778,7 @@ async def server_slash(interaction: discord.Interaction):
             ephemeral=True)
         return
 
-    enlace_del_servidor = "función aún no implementada"  # Cambia esto por tu enlace real
+    enlace_del_servidor = "Gracias por utilizarme! https://discord.gg/U8sY3dbz"  # Cambia esto por tu enlace real
 
     await interaction.response.send_message(
         "📩 Te he enviado el servidor al MD!", ephemeral=True)
