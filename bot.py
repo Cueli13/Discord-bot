@@ -23,7 +23,7 @@ def get_prefix(bot, message):
     if message.content.startswith('.'):
         return '.'
     # Comandos especiales usan ∆ NO PONER
-    elif message.content.startswith(''):
+    elif message.content.startswith('∆'):
         return '∆'
     return ['∆', '.']  # Fallback
 
