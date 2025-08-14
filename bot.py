@@ -1,4 +1,5 @@
- import discord
+ try:
+  import discord
   from discord.ext import commands
 except ImportError:
   print("Error: discord.py no está instalado correctamente")
