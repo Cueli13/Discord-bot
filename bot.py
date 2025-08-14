@@ -568,22 +568,19 @@ class HelpView(discord.ui.View):
       }]
   }]
 
-    def create_embed(self, page_index):
-        page = self.pages[page_index]
-        embed = discord.Embed(title=page["title"],
-                              description=page["description"],
-                              color=discord.Color.dark_blue())
+   def create_embed(self, page_index):
+    page = self.pages[page_index]
+    embed = discord.Embed(
+        title=page["title"],
+        description=page["description"],
+        color=discord.Color.dark_blue()
+    )
 
-        for field in page["fields"]:
-            embed.add_field(name=field["name"],
-                            value=field["value"],
-                            inline=False)
+    for field in page["fields"]:
+        # Aquí va el código que procesa cada field
+        embed.add_field(name=field["name"], value=field["value"], inline=field.get("inline", False))
 
-        embed.set_thumbnail(
-            url="https://cdn-icons-png.flaticon.com/512/1068/1068723.png")
-        embed.set_footer(text="GuardianPro | Protección 24/7")
-
-        return embed
+    return embed
 
     @discord.ui.button(label='◀️ Anterior',
                        style=discord.ButtonStyle.secondary)
