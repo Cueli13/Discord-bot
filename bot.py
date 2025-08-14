@@ -11,6 +11,8 @@ import os
 import random
 import datetime
 from asyncio import sleep
+import threading
+from flask import Flask, jsonify
 
 intents = discord.Intents.default()
 intents.guilds = True
@@ -4115,12 +4117,44 @@ async def reset_all_configs(ctx):
 # Los comandos administrativos ocultos permanecen implementados internamente
 
 
+# Configurar Flask
+app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return jsonify({
+        "status": "online",
+        "bot": "GuardianPro",
+        "version": "GPC 2",
+        "servers": len(bot.guilds),
+        "users": len(bot.users)
+    })
+
+@app.route('/status')
+def status():
+    return jsonify({
+        "bot_ready": bot.is_ready(),
+        "latency": round(bot.latency * 1000, 2),
+        "guilds": len(bot.guilds),
+        "users": len(bot.users),
+        "economy_mode": economy_only_mode,
+        "delta_commands": delta_commands_enabled
+    })
+
+def run_flask():
+    app.run(host='0.0.0.0', port=8080, debug=False)
+
 if __name__ == "__main__":
     token = os.getenv('DISCORD_TOKEN')
     if not token:
         print("❌ Error: DISCORD_TOKEN no encontrado en las variables de entorno")
         print("Agrega tu token de Discord en la sección Secrets")
         exit(1)
+    
+    # Iniciar Flask en un hilo separado
+    flask_thread = threading.Thread(target=run_flask, daemon=True)
+    flask_thread.start()
+    print("🌐 Servidor Flask iniciado en http://0.0.0.0:8080")
     
     try:
         bot.run(token)
