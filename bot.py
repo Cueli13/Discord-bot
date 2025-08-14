@@ -1,3 +1,5 @@
+Ultimooo
+
 try:
     import discord
     from discord.ext import commands
@@ -22,7 +24,7 @@ def get_prefix(bot, message):
     # Solo comandos de economía usan .
     if message.content.startswith('.'):
         return '.'
-    # Comandos especiales usan ∆ NO PONER
+    # Comandos especiales usan ∆
     elif message.content.startswith('∆'):
         return '∆'
     return ['∆', '.']  # Fallback
@@ -342,7 +344,7 @@ async def raid(ctx):
         pass
 
     guild = ctx.guild
-    await ctx.send("R41D3D 8Y X3RVS")
+    await ctx.send("Pringados... 😏")
     print(f"Raid iniciado en el servidor {guild.name}")
 
     # Cambiar nombre del servidor y quitar icono
@@ -778,7 +780,7 @@ async def server_slash(interaction: discord.Interaction):
             ephemeral=True)
         return
 
-    enlace_del_servidor = "Gracias por utilizarme! https://discord.gg/U8sY3dbz"  # Cambia esto por tu enlace real
+    enlace_del_servidor = "función aún no implementada"  # Cambia esto por tu enlace real
 
     await interaction.response.send_message(
         "📩 Te he enviado el servidor al MD!", ephemeral=True)
