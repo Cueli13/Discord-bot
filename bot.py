@@ -1,5 +1,10 @@
-import discord
-from discord.ext import commands
+try:
+    import discord
+    from discord.ext import commands
+except ImportError:
+    print("Error: discord.py no está instalado correctamente")
+    exit(1)
+
 import asyncio
 import json
 import os
@@ -3231,20 +3236,3 @@ async def leaderboard_command(ctx):
 
 
 bot.run(os.getenv('DISCORD_TOKEN'))
-
-# Inicia tu bot
-bot. run ("TU_TOKEN_AQUI")
-# --- Servidor web para mantener Render
-from flask import Flask from threading import Thread
-app = Flask("")
-@app.route("/")
-def home():
-recurn
-• "Bot is running!"
-def
-run():
-app. run(host="0.0.0.0", port=8080)
-# Ejecuta el servidor web en un hilo
-separado
-t = Thread (target=run)
-t. start()
