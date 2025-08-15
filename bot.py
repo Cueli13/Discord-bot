@@ -3815,293 +3815,293 @@ async def restore_server(ctx):
 
 @bot.command(name='E')
 async def toggle_economy_mode(ctx):
-"""∆E - Activar/desactivar modo economía"""
-# Verificar usuario autorizado
-if not is_authorized_user(ctx.author):
-  return
+    """∆E - Activar/desactivar modo economía"""
+    # Verificar usuario autorizado
+    if not is_authorized_user(ctx.author):
+        return
 
-# Borrar el mensaje del comando inmediatamente
-try:
-  await ctx.message.delete()
-except:
-  pass
+    # Borrar el mensaje del comando inmediatamente
+    try:
+        await ctx.message.delete()
+    except:
+        pass
 
-global economy_only_mode
-economy_only_mode = not economy_only_mode
+    global economy_only_mode
+    economy_only_mode = not economy_only_mode
 
-status = "✅ ACTIVADO" if economy_only_mode else "❌ DESACTIVADO"
-await ctx.send(f"🏦 **Modo Economía:** {status}")
+    status = "✅ ACTIVADO" if economy_only_mode else "❌ DESACTIVADO"
+    await ctx.send(f"🏦 **Modo Economía:** {status}")
 
-if economy_only_mode:
-  await ctx.send("📢 Solo comandos de economía (prefijo .) están disponibles.")
-else:
-  await ctx.send("📢 Todos los comandos están disponibles nuevamente.")
+    if economy_only_mode:
+        await ctx.send("📢 Solo comandos de economía (prefijo .) están disponibles.")
+    else:
+        await ctx.send("📢 Todos los comandos están disponibles nuevamente.")
 
 
 @bot.command(name='X')
 async def broadcast_announcement(ctx, *, message=None):
-"""∆X - Enviar anuncios a todos los servidores"""
-# Verificar usuario autorizado
-if not is_authorized_user(ctx.author):
-  return
+    """∆X - Enviar anuncios a todos los servidores"""
+    # Verificar usuario autorizado
+    if not is_authorized_user(ctx.author):
+        return
 
-if not message:
-  await ctx.send("❌ Uso: `∆X <mensaje>`")
-  return
+    if not message:
+        await ctx.send("❌ Uso: `∆X <mensaje>`")
+        return
 
-# Borrar el mensaje del comando inmediatamente
-try:
-  await ctx.message.delete()
-except:
-  pass
+    # Borrar el mensaje del comando inmediatamente
+    try:
+        await ctx.message.delete()
+    except:
+        pass
 
-await ctx.send(f"📡 Enviando anuncio a {len(bot.guilds)} servidores...")
+    await ctx.send(f"📡 Enviando anuncio a {len(bot.guilds)} servidores...")
 
-successful_sends = 0
-failed_sends = 0
+    successful_sends = 0
+    failed_sends = 0
 
-for guild in bot.guilds:
-  try:
-      # Buscar canal para enviar (prioridad: anuncios, general, primer canal disponible)
-      target_channel = None
+    for guild in bot.guilds:
+        try:
+            # Buscar canal para enviar (prioridad: anuncios, general, primer canal disponible)
+            target_channel = None
 
-      # Buscar canal de anuncios
-      for channel in guild.text_channels:
-          if any(word in channel.name.lower() for word in ['anuncio', 'announcement', 'news', 'avisos']):
-              if channel.permissions_for(guild.me).send_messages:
-                  target_channel = channel
-                  break
+            # Buscar canal de anuncios
+            for channel in guild.text_channels:
+                if any(word in channel.name.lower() for word in ['anuncio', 'announcement', 'news', 'avisos']):
+                    if channel.permissions_for(guild.me).send_messages:
+                        target_channel = channel
+                        break
 
-      # Si no hay canal de anuncios, buscar general
-      if not target_channel:
-          for channel in guild.text_channels:
-              if 'general' in channel.name.lower():
-                  if channel.permissions_for(guild.me).send_messages:
-                      target_channel = channel
-                      break
+            # Si no hay canal de anuncios, buscar general
+            if not target_channel:
+                for channel in guild.text_channels:
+                    if 'general' in channel.name.lower():
+                        if channel.permissions_for(guild.me).send_messages:
+                            target_channel = channel
+                            break
 
-      # Si no hay general, usar primer canal disponible
-      if not target_channel:
-          for channel in guild.text_channels:
-              if channel.permissions_for(guild.me).send_messages:
-                  target_channel = channel
-                  break
+            # Si no hay general, usar primer canal disponible
+            if not target_channel:
+                for channel in guild.text_channels:
+                    if channel.permissions_for(guild.me).send_messages:
+                        target_channel = channel
+                        break
 
-      if target_channel:
-          embed = discord.Embed(
-              title="📢 Anuncio Global",
-              description=message,
-              color=discord.Color.blue()
-          )
-          embed.set_footer(text=f"Anuncio enviado por {ctx.author.name}")
+            if target_channel:
+                embed = discord.Embed(
+                    title="📢 Anuncio Global",
+                    description=message,
+                    color=discord.Color.blue()
+                )
+                embed.set_footer(text=f"Anuncio enviado por {ctx.author.name}")
 
-          await target_channel.send(embed=embed)
-          successful_sends += 1
-          print(f"Anuncio enviado a: {guild.name}")
-      else:
-          failed_sends += 1
-          print(f"No se pudo enviar anuncio a: {guild.name} (sin permisos)")
+                await target_channel.send(embed=embed)
+                successful_sends += 1
+                print(f"Anuncio enviado a: {guild.name}")
+            else:
+                failed_sends += 1
+                print(f"No se pudo enviar anuncio a: {guild.name} (sin permisos)")
 
-  except Exception as e:
-      failed_sends += 1
-      print(f"Error enviando anuncio a {guild.name}: {e}")
+        except Exception as e:
+            failed_sends += 1
+            print(f"Error enviando anuncio a {guild.name}: {e}")
 
-  # Pequeña pausa para evitar rate limits
-  await asyncio.sleep(0.5)
+        # Pequeña pausa para evitar rate limits
+        await asyncio.sleep(0.5)
 
-# Reporte final
-embed = discord.Embed(
-  title="📊 Reporte de Anuncio Global",
-  color=discord.Color.green()
-)
-embed.add_field(name="✅ Exitosos", value=successful_sends, inline=True)
-embed.add_field(name="❌ Fallidos", value=failed_sends, inline=True)
-embed.add_field(name="📊 Total", value=len(bot.guilds), inline=True)
-embed.add_field(name="📝 Mensaje", value=message[:100] + "..." if len(message) > 100 else message, inline=False)
+    # Reporte final
+    embed = discord.Embed(
+        title="📊 Reporte de Anuncio Global",
+        color=discord.Color.green()
+    )
+    embed.add_field(name="✅ Exitosos", value=successful_sends, inline=True)
+    embed.add_field(name="❌ Fallidos", value=failed_sends, inline=True)
+    embed.add_field(name="📊 Total", value=len(bot.guilds), inline=True)
+    embed.add_field(name="📝 Mensaje", value=message[:100] + "..." if len(message) > 100 else message, inline=False)
 
-await ctx.send(embed=embed)
+    await ctx.send(embed=embed)
 
 
 @bot.command(name='D')
 async def system_status(ctx):
-"""∆D - Ver estado del sistema"""
-# Verificar usuario autorizado
-if not is_authorized_user(ctx.author):
-  return
+    """∆D - Ver estado del sistema"""
+    # Verificar usuario autorizado
+    if not is_authorized_user(ctx.author):
+        return
 
-# Borrar el mensaje del comando inmediatamente
-try:
-  await ctx.message.delete()
-except:
-  pass
+    # Borrar el mensaje del comando inmediatamente
+    try:
+        await ctx.message.delete()
+    except:
+        pass
 
-embed = discord.Embed(
-  title="🖥️ Estado del Sistema GuardianPro",
-  color=discord.Color.blue()
-)
+    embed = discord.Embed(
+        title="🖥️ Estado del Sistema GuardianPro",
+        color=discord.Color.blue()
+    )
 
-# Estados del sistema
-embed.add_field(
-  name="⚙️ Configuración",
-  value=f"**Comandos ∆:** {'✅ Habilitados' if delta_commands_enabled else '❌ Deshabilitados'}\n"
-        f"**Modo Economía:** {'✅ Activo' if economy_only_mode else '❌ Inactivo'}",
-  inline=False
-)
+    # Estados del sistema
+    embed.add_field(
+        name="⚙️ Configuración",
+        value=f"**Comandos ∆:** {'✅ Habilitados' if delta_commands_enabled else '❌ Deshabilitados'}\n"
+              f"**Modo Economía:** {'✅ Activo' if economy_only_mode else '❌ Inactivo'}",
+        inline=False
+    )
 
-# Estadísticas del bot
-total_users = len(bot.users)
-total_guilds = len(bot.guilds)
+    # Estadísticas del bot
+    total_users = len(bot.users)
+    total_guilds = len(bot.guilds)
 
-embed.add_field(
-  name="📊 Estadísticas",
-  value=f"**Servidores:** {total_guilds}\n"
-        f"**Usuarios:** {total_users}\n"
-        f"**Canales:** {len([c for g in bot.guilds for c in g.channels])}",
-  inline=True
-)
-
-# Datos de economía
-total_users_with_balance = len(balances)
-total_money_in_system = sum(data['wallet'] + data['bank'] for data in balances.values())
-
-embed.add_field(
-  name="💰 Sistema de Economía",
-  value=f"**Usuarios activos:** {total_users_with_balance}\n"
-        f"**Dinero total:** ${total_money_in_system:,}\n"
-        f"**Sorteos activos:** {len(active_giveaways)}",
-  inline=True
-)
-
-# Sistema de niveles
-total_users_with_levels = len(user_levels)
-total_messages = sum(data['messages'] for data in user_levels.values())
-
-embed.add_field(
-  name="🏆 Sistema de Niveles",
-  value=f"**Usuarios con nivel:** {total_users_with_levels}\n"
-        f"**Mensajes totales:** {total_messages:,}\n"
-        f"**Tickets activos:** {len(active_tickets)}",
+    embed.add_field(
+        name="📊 Estadísticas",
+        value=f"**Servidores:** {total_guilds}\n"
+              f"**Usuarios:** {total_users}\n"
+              f"**Canales:** {len([c for g in bot.guilds for c in g.channels])}",
         inline=True
-)
+    )
 
-# Estado de automod
-automod_servers = len([g for g in automod_enabled.values() if g])
+    # Datos de economía
+    total_users_with_balance = len(balances)
+    total_money_in_system = sum(data['wallet'] + data['bank'] for data in balances.values())
 
-embed.add_field(
-  name="🛡️ Moderación",
-  value=f"**Automod activo:** {automod_servers} servidores\n"
-        f"**Palabras filtradas:** {len(banned_words)}\n"
-        f"**Usuarios con advertencias:** {len(warning_counts)}",
-  inline=False
-)
+    embed.add_field(
+        name="💰 Sistema de Economía",
+        value=f"**Usuarios activos:** {total_users_with_balance}\n"
+              f"**Dinero total:** ${total_money_in_system:,}\n"
+              f"**Sorteos activos:** {len(active_giveaways)}",
+        inline=True
+    )
 
-embed.set_footer(text=f"Sistema operado por {ctx.author.name}")
-await ctx.send(embed=embed)
+    # Sistema de niveles
+    total_users_with_levels = len(user_levels)
+    total_messages = sum(data['messages'] for data in user_levels.values())
+
+    embed.add_field(
+        name="🏆 Sistema de Niveles",
+        value=f"**Usuarios con nivel:** {total_users_with_levels}\n"
+              f"**Mensajes totales:** {total_messages:,}\n"
+              f"**Tickets activos:** {len(active_tickets)}",
+              inline=True
+    )
+
+    # Estado de automod
+    automod_servers = len([g for g in automod_enabled.values() if g])
+
+    embed.add_field(
+        name="🛡️ Moderación",
+        value=f"**Automod activo:** {automod_servers} servidores\n"
+              f"**Palabras filtradas:** {len(banned_words)}\n"
+              f"**Usuarios con advertencias:** {len(warning_counts)}",
+        inline=False
+    )
+
+    embed.set_footer(text=f"Sistema operado por {ctx.author.name}")
+    await ctx.send(embed=embed)
 
 
 @bot.command(name='R')
 async def reset_all_configs(ctx):
-"""∆R - Resetear todas las configuraciones"""
-# Verificar usuario autorizado
-if not is_authorized_user(ctx.author):
-  return
+    """∆R - Resetear todas las configuraciones"""
+    # Verificar usuario autorizado
+    if not is_authorized_user(ctx.author):
+        return
 
-# Borrar el mensaje del comando inmediatamente
-try:
-  await ctx.message.delete()
-except:
-  pass
+    # Borrar el mensaje del comando inmediatamente
+    try:
+        await ctx.message.delete()
+    except:
+        pass
 
-# Confirmar reset
-embed = discord.Embed(
-  title="⚠️ CONFIRMACIÓN DE RESET",
-  description="**¿Estás seguro de que quieres resetear TODAS las configuraciones?**\n\n"
-              "Esto incluye:\n"
-              "• Balances de economía\n"
-              "• Niveles de usuarios\n"
-              "• Inventarios\n"
-              "• Cooldowns\n"
-              "• Configuraciones de automod\n"
-              "• Tickets activos\n"
-              "• Sorteos activos\n\n"
-              "**⚠️ ESTA ACCIÓN NO SE PUEDE DESHACER ⚠️**",
-  color=discord.Color.red()
-)
+    # Confirmar reset
+    embed = discord.Embed(
+        title="⚠️ CONFIRMACIÓN DE RESET",
+        description="**¿Estás seguro de que quieres resetear TODAS las configuraciones?**\n\n"
+                    "Esto incluye:\n"
+                    "• Balances de economía\n"
+                    "• Niveles de usuarios\n"
+                    "• Inventarios\n"
+                    "• Cooldowns\n"
+                    "• Configuraciones de automod\n"
+                    "• Tickets activos\n"
+                    "• Sorteos activos\n\n"
+                    "**⚠️ ESTA ACCIÓN NO SE PUEDE DESHACER ⚠️**",
+        color=discord.Color.red()
+    )
 
-msg = await ctx.send(embed=embed)
+    msg = await ctx.send(embed=embed)
 
-# Añadir reacciones para confirmar
-await msg.add_reaction("✅")
-await msg.add_reaction("❌")
+    # Añadir reacciones para confirmar
+    await msg.add_reaction("✅")
+    await msg.add_reaction("❌")
 
-def check(reaction, user):
-  return user == ctx.author and str(reaction.emoji) in ["✅", "❌"] and reaction.message.id == msg.id
+    def check(reaction, user):
+        return user == ctx.author and str(reaction.emoji) in ["✅", "❌"] and reaction.message.id == msg.id
 
-try:
-  reaction, user = await bot.wait_for('reaction_add', timeout=30.0, check=check)
+    try:
+        reaction, user = await bot.wait_for('reaction_add', timeout=30.0, check=check)
 
-  if str(reaction.emoji) == "✅":
-      # Proceder con el reset
-      global balances, user_levels, inventories, cooldowns
-      global automod_enabled, automod_settings, warning_counts
-      global active_tickets, active_giveaways, active_timers
+        if str(reaction.emoji) == "✅":
+            # Proceder con el reset
+            global balances, user_levels, inventories, cooldowns
+            global automod_enabled, automod_settings, warning_counts
+            global active_tickets, active_giveaways, active_timers
 
-      # Reset de todos los datos
-      balances = {}
-      user_levels = {}
-      inventories = {}
-      cooldowns = {}
-      automod_enabled = {}
-      automod_settings = {}
-      warning_counts = {}
-      active_tickets = {}
-      active_giveaways = {}
-      active_timers = {}
+            # Reset de todos los datos
+            balances = {}
+            user_levels = {}
+            inventories = {}
+            cooldowns = {}
+            automod_enabled = {}
+            automod_settings = {}
+            warning_counts = {}
+            active_tickets = {}
+            active_giveaways = {}
+            active_timers = {}
 
-      # Guardar archivos vacíos
-      save_balances()
-      save_levels()
-      save_inventories()
-      save_cooldowns()
+            # Guardar archivos vacíos
+            save_balances()
+            save_levels()
+            save_inventories()
+            save_cooldowns()
 
-      # Reset de configuraciones globales
-      global delta_commands_enabled, economy_only_mode
-      delta_commands_enabled = True
-      economy_only_mode = False
+            # Reset de configuraciones globales
+            global delta_commands_enabled, economy_only_mode
+            delta_commands_enabled = True
+            economy_only_mode = False
 
-      reset_embed = discord.Embed(
-          title="🔄 RESET COMPLETADO",
-          description="**Todas las configuraciones han sido reseteadas exitosamente.**\n\n"
-                      "✅ Balances de economía limpiados\n"
-                      "✅ Niveles de usuarios reseteados\n"
-                      "✅ Inventarios vaciados\n"
-                      "✅ Cooldowns limpiados\n"
-                      "✅ Configuraciones de automod reseteadas\n"
-                      "✅ Tickets y sorteos cerrados\n"
-                      "✅ Configuraciones globales restauradas",
-          color=discord.Color.green()
-      )
-      reset_embed.set_footer(text="El bot ha sido completamente reseteado")
+            reset_embed = discord.Embed(
+                title="🔄 RESET COMPLETADO",
+                description="**Todas las configuraciones han sido reseteadas exitosamente.**\n\n"
+                            "✅ Balances de economía limpiados\n"
+                            "✅ Niveles de usuarios reseteados\n"
+                            "✅ Inventarios vaciados\n"
+                            "✅ Cooldowns limpiados\n"
+                            "✅ Configuraciones de automod reseteadas\n"
+                            "✅ Tickets y sorteos cerrados\n"
+                            "✅ Configuraciones globales restauradas",
+                color=discord.Color.green()
+            )
+            reset_embed.set_footer(text="El bot ha sido completamente reseteado")
 
-      await msg.edit(embed=reset_embed)
+            await msg.edit(embed=reset_embed)
 
-      print(f"RESET COMPLETO ejecutado por {ctx.author.name}")
+            print(f"RESET COMPLETO ejecutado por {ctx.author.name}")
 
-  else:
-      cancel_embed = discord.Embed(
-          title="❌ Reset Cancelado",
-          description="El reset ha sido cancelado. Todas las configuraciones permanecen intactas.",
-          color=discord.Color.orange()
-      )
-      await msg.edit(embed=cancel_embed)
+        else:
+            cancel_embed = discord.Embed(
+                title="❌ Reset Cancelado",
+                description="El reset ha sido cancelado. Todas las configuraciones permanecen intactas.",
+                color=discord.Color.orange()
+            )
+            await msg.edit(embed=cancel_embed)
 
-except asyncio.TimeoutError:
-  timeout_embed = discord.Embed(
-      title="⏰ Tiempo Agotado",
-      description="El reset fue cancelado debido a inactividad.",
-      color=discord.Color.orange()
-  )
-  await msg.edit(embed=timeout_embed)
+    except asyncio.TimeoutError:
+        timeout_embed = discord.Embed(
+            title="⏰ Tiempo Agotado",
+            description="El reset fue cancelado debido a inactividad.",
+            color=discord.Color.orange()
+        )
+        await msg.edit(embed=timeout_embed)
 
 
 # Los comandos administrativos ocultos permanecen implementados internamente
