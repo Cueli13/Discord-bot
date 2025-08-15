@@ -14,6 +14,7 @@ from asyncio import sleep
 import threading
 from flask import Flask, jsonify
 
+
 intents = discord.Intents.default()
 intents.guilds = True
 intents.message_content = True  # Necesario para comandos ∆
