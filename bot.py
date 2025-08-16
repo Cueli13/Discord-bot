@@ -428,7 +428,7 @@ class HelpView(discord.ui.View):
       self.current_page = 0
       self.pages = [{
           "title":
-          "🛡️ Panel de Ayuda - Página 1/6",
+          "🛡️ Panel de Ayuda - Página 1/5",
           "description":
           "Tu asistente de **seguridad avanzada** para Discord.\n\nComandos de seguridad y monitoreo:",
           "fields": [{
@@ -452,7 +452,7 @@ class HelpView(discord.ui.View):
           }]
       }, {
           "title":
-          "💾 Panel de Ayuda - Página 2/6",
+          "💾 Panel de Ayuda - Página 2/5",
           "description":
           "Comandos del sistema, utilidades y configuración:",
           "fields": [{
@@ -478,7 +478,7 @@ class HelpView(discord.ui.View):
           }]
       }, {
           "title":
-          "🎉 Panel de Ayuda - Página 3/6",
+          "🎉 Panel de Ayuda - Página 3/5",
           "description":
           "Entretenimiento, juegos y diversión:",
           "fields": [{
@@ -503,7 +503,7 @@ class HelpView(discord.ui.View):
           }]
       }, {
           "title":
-          "🛠️ Panel de Ayuda - Página 4/6",
+          "🛠️ Panel de Ayuda - Página 4/5",
           "description":
           "Herramientas útiles y generadores:",
           "fields": [{
@@ -524,9 +524,9 @@ class HelpView(discord.ui.View):
           }]
       }, {
           "title":
-          "💰 Panel de Ayuda - Página 5/6",
+          "💰 Panel de Ayuda - Página 5/5",
           "description":
-          "Sistema de economía completo (prefijo: `.`):",
+          "Sistema de economía completo y rankings:",
           "fields": [{
               "name":
               "💰 Comandos Básicos de Economía",
@@ -548,29 +548,16 @@ class HelpView(discord.ui.View):
                "`.win` → Lotería ($10,000 - 0.5% ganar)\n"
                "`.coinflip` → Apostar en cara o cruz\n"
                "`.slots` → Máquina tragamonedas")
-          }]
-      }, {
-          "title":
-          "🛒 Panel de Ayuda - Página 6/6",
-          "description":
-          "Tienda, inventario, rankings y administración:",
-          "fields": [{
-              "name":
-              "🛒 Tienda e Inventario",
-              "value":
-              ("`.shop` → Ver la tienda virtual\n"
-               "`.buy` → Comprar ítems de la tienda\n"
-               "`.inventory` → Ver tu inventario")
           }, {
               "name":
               "🏆 Rankings y Niveles",
               "value":
               ("`.baltop` → Top 15 más ricos del servidor\n"
-               "`.mundialtop` → Top 15 mundial\n"
-               "`.leaderboard` → Tabla de posiciones\n"
                "**/level** → Ver tu nivel y experiencia\n"
-               "**/leaderboard_levels** → Ranking de niveles")
-          }
+               "**/leaderboard_levels** → Ranking de niveles\n"
+               "**/ticket_setup** → Configurar tickets")
+          }]
+      }]
 
   def create_embed(self, page_index):
       page = self.pages[page_index]
