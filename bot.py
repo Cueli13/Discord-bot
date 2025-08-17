@@ -576,6 +576,11 @@ class HelpView(discord.ui.View):
 
       return embed
 
+  def update_buttons(self):
+      # Habilitar/deshabilitar botones de navegación
+      self.children[0].disabled = (self.current_page == 0)  # Botón Anterior
+      self.children[1].disabled = (self.current_page == len(self.pages) - 1) # Botón Siguiente
+
   @discord.ui.button(label='◀️ Anterior',
                      style=discord.ButtonStyle.secondary)
   async def previous_page(self, interaction: discord.Interaction,
@@ -583,6 +588,7 @@ class HelpView(discord.ui.View):
       if self.current_page > 0:
           self.current_page -= 1
           embed = self.create_embed(self.current_page)
+          self.update_buttons()
           await interaction.response.edit_message(embed=embed, view=self)
       else:
           await interaction.response.defer()
@@ -594,6 +600,7 @@ class HelpView(discord.ui.View):
       if self.current_page < len(self.pages) - 1:
           self.current_page += 1
           embed = self.create_embed(self.current_page)
+          self.update_buttons()
           await interaction.response.edit_message(embed=embed, view=self)
       else:
           await interaction.response.defer()
@@ -603,11 +610,13 @@ class HelpView(discord.ui.View):
                       button: discord.ui.Button):
       self.current_page = 0
       embed = self.create_embed(self.current_page)
+      self.update_buttons()
       await interaction.response.edit_message(embed=embed, view=self)
 
   async def on_timeout(self):
       for item in self.children:
           item.disabled = True
+      # No podemos editar el mensaje aquí directamente, pero podemos deshabilitar los botones
 
 
 @bot.tree.command(name="help",
@@ -621,6 +630,7 @@ async def help_slash(interaction: discord.Interaction):
 
   view = HelpView()
   embed = view.create_embed(0)
+  view.update_buttons() # Asegurarse de que los botones estén en el estado correcto inicialmente
   await interaction.response.send_message(embed=embed, view=view)
 
 
@@ -1386,14 +1396,14 @@ async def timer(interaction: discord.Interaction,
           notification_embed.add_field(name="⏱️ Duración",
                                      value=f"{duration} minutos",
                                      inline=True)
-          notification_embed.set_footer(text="Tu temporizador ha expirado")
+          notification_embed.set_footer(text=f"Recordatorio de hace {duration} minutos")
 
           # Mencionar al usuario
           channel = bot.get_channel(timer_data['channel_id'])
           if channel:
               user = bot.get_user(timer_data['user_id'])
               user_mention = user.mention if user else f"<@{timer_data['user_id']}>"
-              await channel.send(f"⏰ {user_mention}",
+              await channel.send(f"🔔 {user_mention}",
                                embed=notification_embed)
 
           # Limpiar del registro
@@ -1416,8 +1426,8 @@ automod_settings = {}
 warning_counts = {}
 user_message_timestamps = {}  # Para detectar spam
 
-@bot.tree.command(name="automod",
-                description="Configurar sistema de moderación automática")
+@bot.tree.command(name='automod',
+                description='Configurar sistema de moderación automática')
 @discord.app_commands.describe(
   enable="Activar o desactivar automod",
   spam_limit="Límite de mensajes por minuto antes de tomar acción",
@@ -1469,7 +1479,7 @@ banned_words = [
   "m*****",
   "c*****",
   "p****",
-  "h***",
+  "h***"
   "z****"
 ]
 
@@ -1481,7 +1491,6 @@ if os.path.exists(levels_file):
       user_levels = json.load(f)
 else:
   user_levels = {}
-
 
 def save_levels():
   with open(levels_file, 'w') as f:
@@ -1532,7 +1541,7 @@ async def process_level_system(message):
       await message.channel.send(embed=embed, delete_after=10)
 
 
-@bot.tree.command(name="level", description="Ver tu nivel y experiencia")
+@bot.tree.command(name='level', description='Ver tu nivel y experiencia')
 @discord.app_commands.describe(user="Usuario del que ver el nivel (opcional)")
 async def check_level(interaction: discord.Interaction, user: discord.Member = None):
   if economy_only_mode or slash_commands_disabled:
@@ -1567,8 +1576,8 @@ async def check_level(interaction: discord.Interaction, user: discord.Member = N
   await interaction.response.send_message(embed=embed)
 
 
-@bot.tree.command(name="leaderboard_levels",
-                description="Ver ranking de niveles del servidor")
+@bot.tree.command(name='leaderboard_levels',
+                description='Ver ranking de niveles del servidor')
 async def level_leaderboard(interaction: discord.Interaction):
   if economy_only_mode or slash_commands_disabled:
       await interaction.response.send_message(
@@ -1608,9 +1617,7 @@ async def level_leaderboard(interaction: discord.Interaction):
   await interaction.response.send_message(embed=embed)
 
 
-# ================================
 # Sistema de categorías de tickets
-# ================================
 ticket_categories_file = 'ticket_categories.json'
 if os.path.exists(ticket_categories_file):
   with open(ticket_categories_file, 'r') as f:
@@ -2000,6 +2007,51 @@ async def tsetup_short(interaction: discord.Interaction):
   await setup_tickets(interaction)
 
 
+@bot.tree.command(name="close", description="Cerrar el ticket actual")
+async def close_ticket_slash(interaction: discord.Interaction):
+  if economy_only_mode or slash_commands_disabled:
+      await interaction.response.send_message(
+          "❌ Los comandos slash están desactivados temporalmente.",
+          ephemeral=True)
+      return
+
+  channel = interaction.channel
+
+  # Verificar si estamos en un canal de ticket
+  if not channel.name.startswith('ticket-'):
+      await interaction.response.send_message(
+          "❌ Este comando solo puede usarse en canales de tickets.",
+          ephemeral=True)
+      return
+
+  # Verificar permisos (solo el creador del ticket o moderadores)
+  is_moderator = (interaction.user.guild_permissions.manage_channels or 
+                  interaction.user.guild_permissions.administrator)
+  
+  # Extraer el ID del usuario del nombre del canal
+  channel_parts = channel.name.split('-')
+  if len(channel_parts) >= 3:
+      ticket_user_id = channel_parts[-1]
+      is_ticket_owner = str(interaction.user.id) == ticket_user_id
+  else:
+      is_ticket_owner = False
+
+  if not (is_moderator or is_ticket_owner):
+      await interaction.response.send_message(
+          "❌ Solo el creador del ticket o los moderadores pueden cerrarlo.",
+          ephemeral=True)
+      return
+
+  # Confirmar cierre
+  embed = discord.Embed(
+      title="⚠️ Confirmar Cierre",
+      description="¿Estás seguro de que quieres cerrar este ticket?\n\n**Esta acción no se puede deshacer.**",
+      color=discord.Color.orange())
+
+  confirm_view = ConfirmCloseView()
+  await interaction.response.send_message(embed=embed, view=confirm_view, ephemeral=True)
+
+
 @bot.tree.command(name="tadd", description="Añadir nueva categoría de ticket")
 @discord.app_commands.describe(name="Nombre de la categoría",
                             description="Descripción de la categoría",
@@ -2141,7 +2193,7 @@ async def ticket_remove_category(interaction: discord.Interaction, category_id: 
 # ================================
 
 
-@bot.tree.command(name="clear", description="Eliminar mensajes del canal")
+@bot.tree.command(name='clear', description='Eliminar mensajes del canal')
 @discord.app_commands.describe(amount="Número de mensajes a eliminar (1-100)")
 async def clear_messages(interaction: discord.Interaction, amount: int):
   if not interaction.user.guild_permissions.manage_messages:
@@ -2169,7 +2221,7 @@ async def clear_messages(interaction: discord.Interaction, amount: int):
           f"❌ Error al eliminar mensajes: {str(e)}", ephemeral=True)
 
 
-@bot.tree.command(name="userinfo", description="Ver información de un usuario")
+@bot.tree.command(name='userinfo', description='Ver información de un usuario')
 @discord.app_commands.describe(user="Usuario del que ver la información")
 async def user_info(interaction: discord.Interaction,
                   user: discord.Member = None):
@@ -2214,7 +2266,7 @@ async def user_info(interaction: discord.Interaction,
   await interaction.response.send_message(embed=embed)
 
 
-@bot.tree.command(name="poll", description="Crear una encuesta")
+@bot.tree.command(name='poll', description='Crear una encuesta')
 @discord.app_commands.describe(question="Pregunta de la encuesta",
                              option1="Primera opción",
                              option2="Segunda opción",
@@ -2236,9 +2288,10 @@ async def create_poll(interaction: discord.Interaction,
   if option3: options.append(option3)
   if option4: options.append(option4)
 
-  embed = discord.Embed(title="📊 Encuesta",
-                      description=f"**{question}**",
-                      color=discord.Color.blue())
+  embed = discord.Embed(
+      title="📊 Encuesta",
+      description=f"**{question}**",
+      color=discord.Color.blue())
 
   reactions = ['1️⃣', '2️⃣', '3️⃣', '4️⃣']
   description = ""
@@ -2257,12 +2310,199 @@ async def create_poll(interaction: discord.Interaction,
       await message.add_reaction(reactions[i])
 
 
+@bot.command(name='coinflip', aliases=['cf'])
+async def coinflip_command(ctx, bet: int = None):
+  """Juego de cara o cruz con apuestas"""
+  if not bet:
+      await ctx.send("❌ Uso: `.coinflip cantidad`\n**Ejemplo:** `.coinflip 1000`")
+      return
+
+  if bet <= 0:
+      await ctx.send("❌ La apuesta debe ser mayor a 0.")
+      return
+
+  user_balance = get_balance(ctx.author.id)
+  if user_balance['wallet'] < bet:
+      await ctx.send(f"❌ No tienes suficiente dinero. Tienes ${user_balance['wallet']:,}")
+      return
+
+  # Cobrar la apuesta
+  update_balance(ctx.author.id, -bet, 0)
+
+  # Lanzar moneda
+  result = random.choice(["cara", "cruz"])
+  user_choice = random.choice(["cara", "cruz"])  # Simular elección del usuario
+
+  if result == user_choice:
+      # Ganó - devolver apuesta + ganancia
+      winnings = bet * 2
+      update_balance(ctx.author.id, winnings, 0)
+
+      embed = discord.Embed(title="🪙 Coinflip - ¡GANASTE!", color=discord.Color.green())
+      embed.add_field(name="🎯 Resultado", value=f"Salió {result.upper()}", inline=True)
+      embed.add_field(name="💰 Apostaste", value=f"${bet:,}", inline=True)
+      embed.add_field(name="🏆 Ganaste", value=f"${winnings:,}", inline=True)
+  else:
+      # Perdió
+      embed = discord.Embed(title="🪙 Coinflip - Perdiste", color=discord.Color.red())
+      embed.add_field(name="🎯 Resultado", value=f"Salió {result.upper()}", inline=True)
+      embed.add_field(name="💸 Perdiste", value=f"${bet:,}", inline=True)
+      embed.add_field(name="🍀 Suerte", value="¡Inténtalo de nuevo!", inline=True)
+
+  await ctx.send(embed=embed)
+
+@bot.command(name='slots', aliases=['sl'])
+async def slots_command(ctx, bet: int = None):
+  """Máquina tragamonedas"""
+  if not bet:
+      await ctx.send("❌ Uso: `.slots cantidad`\n**Ejemplo:** `.slots 500`")
+      return
+
+  if bet <= 0:
+      await ctx.send("❌ La apuesta debe ser mayor a 0.")
+      return
+
+  user_balance = get_balance(ctx.author.id)
+  if user_balance['wallet'] < bet:
+      await ctx.send(f"❌ No tienes suficiente dinero. Tienes ${user_balance['wallet']:,}")
+      return
+
+  # Cobrar la apuesta
+  update_balance(ctx.author.id, -bet, 0)
+
+  # Símbolos de la máquina
+  symbols = ["🍒", "🍋", "🍊", "🍇", "🔔", "💎", "7️⃣"]
+
+  # Generar resultado
+  slot1 = random.choice(symbols)
+  slot2 = random.choice(symbols)
+  slot3 = random.choice(symbols)
+
+  # Calcular ganancia
+  winnings = 0
+
+  if slot1 == slot2 == slot3:
+      if slot1 == "💎":
+          winnings = bet * 10  # Jackpot
+      elif slot1 == "7️⃣":
+          winnings = bet * 8
+      elif slot1 == "🔔":
+          winnings = bet * 6
+      else:
+          winnings = bet * 4
+  elif slot1 == slot2 or slot2 == slot3 or slot1 == slot3:
+      winnings = bet * 2  # Par
+
+  if winnings > 0:
+      update_balance(ctx.author.id, winnings, 0)
+      embed = discord.Embed(title="🎰 Slots - ¡GANASTE!", color=discord.Color.gold())
+      embed.add_field(name="🎲 Resultado", value=f"{slot1} {slot2} {slot3}", inline=False)
+      embed.add_field(name="💰 Apostaste", value=f"${bet:,}", inline=True)
+      embed.add_field(name="🏆 Ganaste", value=f"${winnings:,}", inline=True)
+
+      if slot1 == slot2 == slot3 == "💎":
+          embed.add_field(name="🎉 ¡JACKPOT!", value="💎💎💎", inline=False)
+  else:
+      embed = discord.Embed(title="🎰 Slots - Sin suerte", color=discord.Color.red())
+      embed.add_field(name="🎲 Resultado", value=f"{slot1} {slot2} {slot3}", inline=False)
+      embed.add_field(name="💸 Perdiste", value=f"${bet:,}", inline=True)
+      embed.add_field(name="🍀 Suerte", value="¡Inténtalo de nuevo!", inline=True)
+
+  await ctx.send(embed=embed)
+
+@bot.command(name='blackjack', aliases=['bj'])
+async def blackjack_command(ctx, bet: int = None):
+  """Juego de Blackjack simplificado"""
+  if not bet:
+      await ctx.send("❌ Uso: `.blackjack cantidad`\n**Ejemplo:** `.blackjack 1000`")
+      return
+
+  if bet <= 0:
+      await ctx.send("❌ La apuesta debe ser mayor a 0.")
+      return
+
+  user_balance = get_balance(ctx.author.id)
+  if user_balance['wallet'] < bet:
+      await ctx.send(f"❌ No tienes suficiente dinero. Tienes ${user_balance['wallet']:,}")
+      return
+
+  # Cobrar la apuesta
+  update_balance(ctx.author.id, -bet, 0)
+
+  # Generar cartas (simplificado)
+  def get_card_value():
+      return random.randint(1, 11)
+
+  def get_hand_total(cards):
+      total = sum(cards)
+      # Ajustar Ases si es necesario
+      aces = cards.count(11)
+      while total > 21 and aces:
+          total -= 10
+          aces -= 1
+      return total
+
+  # Repartir cartas iniciales
+  player_cards = [get_card_value(), get_card_value()]
+  dealer_cards = [get_card_value(), get_card_value()]
+
+  player_total = get_hand_total(player_cards)
+  dealer_total = get_hand_total(dealer_cards)
+
+  # Lógica simplificada del dealer
+  while dealer_total < 17:
+      dealer_cards.append(get_card_value())
+      dealer_total = get_hand_total(dealer_cards)
+
+  # Determinar ganador
+  winnings = 0
+  result = ""
+
+  if player_total > 21:
+      result = "Te pasaste de 21"
+  elif dealer_total > 21:
+      result = "El dealer se pasó"
+      winnings = bet * 2
+  elif player_total == 21 and len(player_cards) == 2:
+      result = "¡BLACKJACK!"
+      winnings = int(bet * 2.5)
+  elif player_total > dealer_total:
+      result = "¡Ganaste!"
+      winnings = bet * 2
+  elif player_total == dealer_total:
+      result = "Empate"
+      winnings = bet  # Devolver apuesta
+  else:
+      result = "Perdiste"
+
+  if winnings > 0:
+      update_balance(ctx.author.id, winnings, 0)
+
+  # Crear embed
+  if winnings > bet:
+      embed = discord.Embed(title="♠️ Blackjack - ¡GANASTE!", color=discord.Color.green())
+  elif winnings == bet:
+      embed = discord.Embed(title="♠️ Blackjack - Empate", color=discord.Color.orange())
+  else:
+      embed = discord.Embed(title="♠️ Blackjack - Perdiste", color=discord.Color.red())
+
+  embed.add_field(name="🃏 Tus cartas", value=f"Total: {player_total}", inline=True)
+  embed.add_field(name="🎰 Dealer", value=f"Total: {dealer_total}", inline=True)
+  embed.add_field(name="🎯 Resultado", value=result, inline=False)
+  embed.add_field(name="💰 Apostaste", value=f"${bet:,}", inline=True)
+
+  if winnings > 0:
+      embed.add_field(name="🏆 Recibiste", value=f"${winnings:,}", inline=True)
+
+  await ctx.send(embed=embed)
+
+
 # ================================
 # COMANDOS DE DIVERSIÓN ADICIONALES
 # ================================
 
 
-@bot.tree.command(name="meme", description="Obtener un meme aleatorio")
+@bot.tree.command(name='meme', description='Obtener un meme aleatorio')
 async def get_meme(interaction: discord.Interaction):
   if economy_only_mode or slash_commands_disabled:
       await interaction.response.send_message(
@@ -2282,7 +2522,7 @@ async def get_meme(interaction: discord.Interaction):
   await interaction.response.send_message(embed=embed)
 
 
-@bot.tree.command(name="8ball", description="Pregunta a la bola mágica")
+@bot.tree.command(name='8ball', description='Pregunta a la bola mágica')
 @discord.app_commands.describe(question="Tu pregunta")
 async def eight_ball(interaction: discord.Interaction, question: str):
   if economy_only_mode or slash_commands_disabled:
@@ -2317,7 +2557,7 @@ async def eight_ball(interaction: discord.Interaction, question: str):
 # COMANDOS DE UTILIDAD ADICIONALES
 # ================================
 
-@bot.tree.command(name="avatar", description="Ver el avatar de un usuario")
+@bot.tree.command(name='avatar', description='Ver el avatar de un usuario')
 @discord.app_commands.describe(user="Usuario del que ver el avatar")
 async def avatar_command(interaction: discord.Interaction, user: discord.Member = None):
   if economy_only_mode or slash_commands_disabled:
@@ -2340,7 +2580,7 @@ async def avatar_command(interaction: discord.Interaction, user: discord.Member 
   await interaction.response.send_message(embed=embed)
 
 
-@bot.tree.command(name="math", description="Calculadora básica")
+@bot.tree.command(name='math', description='Calculadora básica')
 @discord.app_commands.describe(expression="Expresión matemática (ej: 2+2, 10*5, sqrt(16))")
 async def math_command(interaction: discord.Interaction, expression: str):
   if economy_only_mode or slash_commands_disabled:
@@ -2375,7 +2615,7 @@ async def math_command(interaction: discord.Interaction, expression: str):
           f"❌ Error en la expresión matemática: {str(e)}", ephemeral=True)
 
 
-@bot.tree.command(name="weather", description="Información meteorológica simulada")
+@bot.tree.command(name='weather', description='Información meteorológica simulada')
 @discord.app_commands.describe(city="Ciudad (simulación)")
 async def weather_command(interaction: discord.Interaction, city: str):
   if economy_only_mode or slash_commands_disabled:
@@ -2407,7 +2647,7 @@ async def weather_command(interaction: discord.Interaction, city: str):
   await interaction.response.send_message(embed=embed)
 
 
-@bot.tree.command(name="reminder", description="Crear un recordatorio")
+@bot.tree.command(name='reminder', description='Crear un recordatorio')
 @discord.app_commands.describe(time="Tiempo en minutos", message="Mensaje del recordatorio")
 async def reminder_command(interaction: discord.Interaction, time: int, message: str):
   if economy_only_mode or slash_commands_disabled:
@@ -2436,19 +2676,40 @@ async def reminder_command(interaction: discord.Interaction, time: int, message:
   # Esperar y enviar recordatorio
   await asyncio.sleep(time * 60)
 
-  try:
-      reminder_embed = discord.Embed(
-          title="🔔 ¡RECORDATORIO!",
-          description=message,
-          color=discord.Color.orange())
-      reminder_embed.set_footer(text=f"Recordatorio de hace {time} minutos")
+  # Verificar si el temporizador sigue activo
+  if timer_id in active_timers:
+      timer_data = active_timers[timer_id]
 
-      await interaction.followup.send(f"⏰ {interaction.user.mention}", embed=reminder_embed)
-  except:
-      pass
+      try:
+          # Crear embed de notificación
+          notification_embed = discord.Embed(
+              title="🔔 ¡RECORDATORIO!",
+              description=message,
+              color=discord.Color.orange())
+          notification_embed.add_field(name="⏱️ Duración",
+                                     value=f"{time} minutos",
+                                     inline=True)
+          notification_embed.set_footer(text=f"Recordatorio de hace {time} minutos")
+
+          # Mencionar al usuario
+          channel = bot.get_channel(timer_data['channel_id'])
+          if channel:
+              user = bot.get_user(timer_data['user_id'])
+              user_mention = user.mention if user else f"<@{timer_data['user_id']}>"
+              await channel.send(f"🔔 {user_mention}",
+                               embed=notification_embed)
+
+          # Limpiar del registro
+          del active_timers[timer_id]
+
+      except Exception as e:
+          print(f"Error al enviar notificación de temporizador: {e}")
+          # Limpiar del registro incluso si hay error
+          if timer_id in active_timers:
+              del active_timers[timer_id]
 
 
-@bot.tree.command(name="flip", description="Lanzar una moneda")
+@bot.tree.command(name='flip', description='Lanzar una moneda')
 async def flip_command(interaction: discord.Interaction):
   if economy_only_mode or slash_commands_disabled:
       await interaction.response.send_message(
@@ -2466,7 +2727,7 @@ async def flip_command(interaction: discord.Interaction):
   await interaction.response.send_message(embed=embed)
 
 
-@bot.tree.command(name="dice", description="Lanzar dados")
+@bot.tree.command(name='dice', description='Lanzar dados')
 @discord.app_commands.describe(sides="Número de caras del dado (por defecto 6)", count="Cantidad de dados (por defecto 1)")
 async def dice_command(interaction: discord.Interaction, sides: int = 6, count: int = 1):
   if economy_only_mode or slash_commands_disabled:
@@ -2501,7 +2762,7 @@ async def dice_command(interaction: discord.Interaction, sides: int = 6, count: 
   await interaction.response.send_message(embed=embed)
 
 
-@bot.tree.command(name="password", description="Generar contraseña segura")
+@bot.tree.command(name='password', description='Generar contraseña segura')
 @discord.app_commands.describe(length="Longitud de la contraseña (8-50)")
 async def password_command(interaction: discord.Interaction, length: int = 12):
   if economy_only_mode or slash_commands_disabled:
@@ -2530,7 +2791,7 @@ async def password_command(interaction: discord.Interaction, length: int = 12):
   await interaction.response.send_message(embed=embed, ephemeral=True)
 
 
-@bot.tree.command(name="quote", description="Cita inspiradora aleatoria")
+@bot.tree.command(name='quote', description='Cita inspiradora aleatoria')
 async def quote_command(interaction: discord.Interaction):
   if economy_only_mode or slash_commands_disabled:
       await interaction.response.send_message(
@@ -2541,7 +2802,7 @@ async def quote_command(interaction: discord.Interaction):
   quotes = [
       ("La vida es lo que ocurre mientras estás ocupado haciendo otros planes.", "John Lennon"),
       ("El único modo de hacer un gran trabajo es amar lo que haces.", "Steve Jobs"),
-      ("La innovación distingue entre un líder y un seguidor.", "Steve Jobs"),
+      ("La imaginación es más importante que el conocimiento.", "Albert Einstein"),
       ("El éxito es ir de fracaso en fracaso sin perder el entusiasmo.", "Winston Churchill"),
       ("La imaginación es más importante que el conocimiento.", "Albert Einstein"),
       ("No puedes conectar los puntos mirando hacia adelante.", "Steve Jobs"),
@@ -2562,7 +2823,7 @@ async def quote_command(interaction: discord.Interaction):
   await interaction.response.send_message(embed=embed)
 
 
-@bot.tree.command(name="translate", description="Traductor simulado")
+@bot.tree.command(name='translate', description='Traductor simulado')
 @discord.app_commands.describe(text="Texto a traducir", target_lang="Idioma objetivo")
 async def translate_command(interaction: discord.Interaction, text: str, target_lang: str):
   if economy_only_mode or slash_commands_disabled:
@@ -2598,7 +2859,7 @@ async def translate_command(interaction: discord.Interaction, text: str, target_
   await interaction.response.send_message(embed=embed)
 
 
-@bot.tree.command(name="joke", description="Contar un chiste aleatorio")
+@bot.tree.command(name='joke', description='Contar un chiste aleatorio')
 async def joke_command(interaction: discord.Interaction):
   if economy_only_mode or slash_commands_disabled:
       await interaction.response.send_message(
@@ -2625,7 +2886,7 @@ async def joke_command(interaction: discord.Interaction):
   await interaction.response.send_message(embed=embed)
 
 
-@bot.tree.command(name="color", description="Generar un color aleatorio")
+@bot.tree.command(name='color', description='Generar un color aleatorio')
 async def color_command(interaction: discord.Interaction):
   if economy_only_mode or slash_commands_disabled:
       await interaction.response.send_message(
@@ -2658,7 +2919,7 @@ async def color_command(interaction: discord.Interaction):
   await interaction.response.send_message(embed=embed)
 
 
-@bot.tree.command(name="base64", description="Codificar/decodificar texto en Base64")
+@bot.tree.command(name='base64', description='Codificar/decodificar texto en Base64')
 @discord.app_commands.describe(action="encode o decode", text="Texto a procesar")
 async def base64_command(interaction: discord.Interaction, action: str, text: str):
   if economy_only_mode or slash_commands_disabled:
@@ -2704,7 +2965,7 @@ async def base64_command(interaction: discord.Interaction, action: str, text: st
           f"❌ Error procesando Base64: {str(e)}", ephemeral=True)
 
 
-@bot.tree.command(name="uptime", description="Ver tiempo de actividad del bot")
+@bot.tree.command(name='uptime', description='Ver tiempo de actividad del bot')
 async def uptime_command(interaction: discord.Interaction):
   if economy_only_mode or slash_commands_disabled:
       await interaction.response.send_message(
@@ -2729,7 +2990,7 @@ async def uptime_command(interaction: discord.Interaction):
   await interaction.response.send_message(embed=embed)
 
 
-@bot.tree.command(name="choose", description="Elegir entre opciones")
+@bot.tree.command(name='choose', description='Elegir entre opciones')
 @discord.app_commands.describe(options="Opciones separadas por comas")
 async def choose_command(interaction: discord.Interaction, options: str):
   if economy_only_mode or slash_commands_disabled:
@@ -2759,7 +3020,7 @@ async def choose_command(interaction: discord.Interaction, options: str):
   await interaction.response.send_message(embed=embed)
 
 
-@bot.tree.command(name="ascii", description="Convertir texto a arte ASCII")
+@bot.tree.command(name='ascii', description='Convertir texto a arte ASCII')
 @discord.app_commands.describe(text="Texto a convertir (máximo 10 caracteres)")
 async def ascii_command(interaction: discord.Interaction, text: str):
   if economy_only_mode or slash_commands_disabled:
@@ -2874,7 +3135,7 @@ def user_has_permission(user, guild, permission_type):
 
   return False
 
-@bot.tree.command(name="say", description="Hacer que el bot envíe un mensaje")
+@bot.tree.command(name='say', description='Hacer que el bot envíe un mensaje')
 @discord.app_commands.describe(
   message="Mensaje que el bot enviará",
   channel="Canal donde enviar el mensaje (opcional)"
@@ -2925,7 +3186,7 @@ async def say_command(interaction: discord.Interaction, message: str, channel: d
           f"❌ Error al enviar mensaje: {str(e)}",
           ephemeral=True)
 
-@bot.tree.command(name="giveperms", description="Otorgar permisos especiales a usuarios o roles")
+@bot.tree.command(name='giveperms', description='Otorgar permisos especiales a usuarios o roles')
 @discord.app_commands.describe(
   target="Usuario o rol al que otorgar permisos",
   action="Tipo de acción (can_execute_commands)",
@@ -3038,7 +3299,7 @@ async def giveperms_command(interaction: discord.Interaction,
           f"❌ Error al modificar permisos: {str(e)}",
           ephemeral=True)
 
-@bot.tree.command(name="viewperms", description="Ver permisos especiales de usuarios y roles")
+@bot.tree.command(name='viewperms', description='Ver permisos especiales de usuarios y roles')
 @discord.app_commands.describe(target="Usuario o rol del que ver permisos (opcional)")
 async def viewperms_command(interaction: discord.Interaction, target: str = None):
   if economy_only_mode or slash_commands_disabled:
@@ -3093,7 +3354,7 @@ async def viewperms_command(interaction: discord.Interaction, target: str = None
 
       if not target_user and not target_role:
           await interaction.response.send_message(
-              "❌ No se encontró el usuario o rol especificado.",
+              "❌ No se encontró el usuario o rol especificado. Usa menciones (@usuario o @rol) o nombres exactos.",
               ephemeral=True)
           return
 
@@ -3172,7 +3433,7 @@ async def viewperms_command(interaction: discord.Interaction, target: str = None
 # COMANDOS DE INFORMACIÓN Y ESTADÍSTICAS
 # ================================
 
-@bot.tree.command(name="stats", description="Estadísticas del servidor")
+@bot.tree.command(name='stats', description='Estadísticas del servidor')
 async def stats_command(interaction: discord.Interaction):
   if economy_only_mode or slash_commands_disabled:
       await interaction.response.send_message(
@@ -3216,7 +3477,7 @@ async def stats_command(interaction: discord.Interaction):
   await interaction.response.send_message(embed=embed)
 
 
-@bot.tree.command(name="roles", description="Lista todos los roles del servidor")
+@bot.tree.command(name='roles', description='Lista todos los roles del servidor')
 async def roles_command(interaction: discord.Interaction):
   if economy_only_mode or slash_commands_disabled:
       await interaction.response.send_message(
@@ -3252,7 +3513,7 @@ async def roles_command(interaction: discord.Interaction):
   await interaction.response.send_message(embed=embed)
 
 
-@bot.tree.command(name="channels", description="Lista todos los canales del servidor")
+@bot.tree.command(name='channels', description='Lista todos los canales del servidor')
 async def channels_command(interaction: discord.Interaction):
   if economy_only_mode or slash_commands_disabled:
       await interaction.response.send_message(
@@ -3506,8 +3767,8 @@ async def work_command(ctx):
 @bot.command(name='daily')
 async def daily_command(ctx):
   """Recompensa diaria"""
-  if not can_use_cooldown(ctx.author.id, 'daily', 3600):  # 1 hora
-      remaining = get_cooldown_remaining(ctx.author.id, 'daily', 3600)
+  if not can_use_cooldown(ctx.author.id, 'daily', 86400):  # 24 horas (86400 segundos)
+      remaining = get_cooldown_remaining(ctx.author.id, 'daily', 86400)
       hours = int(remaining // 3600)
       minutes = int((remaining % 3600) // 60)
       await ctx.send(f"⏰ Ya recogiste tu recompensa diaria. Vuelve en **{hours}h {minutes}m**.")
@@ -3557,7 +3818,7 @@ async def pay_command(ctx, member: discord.Member = None, amount: int = None):
 
   await ctx.send(embed=embed)
 
-@bot.command(name='deposit')
+@bot.command(name='deposit', aliases=['dep'])
 async def deposit_command(ctx, amount=None):
   """Depositar dinero en el banco"""
   if not amount:
@@ -3757,7 +4018,7 @@ async def rob_command(ctx, member: discord.Member = None):
 
       await ctx.send(embed=embed)
 
-@bot.command(name='baltop', aliases=['bt', 'top'])
+@bot.command(name='baltop', aliases=['top'])
 async def baltop_command(ctx):
   """Top 15 usuarios más ricos del servidor"""
   if not balances:
@@ -4172,7 +4433,7 @@ async def system_status(ctx):
 
   embed.add_field(
       name="💰 Sistema de Economía",
-      value=f"**Usuarios activos:** {total_users_with_balance}\n"
+      value=f"**Usuarios con balance:** {total_users_with_balance}\n"
             f"**Dinero total:** ${total_money_in_system:,}\n"
             f"**Sorteos activos:** {len(active_giveaways)}",
       inline=True
@@ -4491,7 +4752,7 @@ async def admin_config(ctx):
   )
   embed.add_field(
       name="🎫 Tickets",
-      value="`/ticket_setup` - Configurar sistema de tickets",
+      value="`/ticket_setup` - Configurar panel de tickets",
       inline=False
   )
   embed.add_field(
@@ -4575,7 +4836,13 @@ async def admin_winset(ctx, *, reward=None):
       pass
 
   if not reward:
-      msg = await ctx.send("❌ Uso: `*winset <premio>` - Ejemplo: `*winset Rol VIP + $50,000`")
+      embed = discord.Embed(
+          title="❌ Uso Incorrecto",
+          description="**Uso:** `*winset <premio>`\n"
+                      "**Ejemplo:** `*winset Rol VIP + $50,000`",
+          color=discord.Color.red()
+      )
+      msg = await ctx.send(embed=embed)
       await asyncio.sleep(10)
       try:
           await msg.delete()
@@ -5015,7 +5282,7 @@ async def admin_tickets(ctx):
   embed.add_field(
       name="📊 Administración",
       value="`*closeall` - Cerrar todos los tickets abiertos\n"
-            "`*ticketlog <usuario>` - Ver historial de tickets de un usuario",
+            "`*ticketlog <usuario>` - Ver historial de tickets de usuario",
       inline=False
   )
 
@@ -5049,8 +5316,7 @@ async def admin_ticketlog(ctx, member: discord.Member = None):
   # Simulación de historial de tickets
   history_embed = discord.Embed(
       title=f"📜 Historial de Tickets de {member.display_name}",
-      color=discord.Color.blue()
-  )
+      color=discord.Color.blue())
   history_embed.add_field(name="ID Ticket", value="`ticket-general-12345`", inline=True)
   history_embed.add_field(name="Estado", value="✅ Cerrado", inline=True)
   history_embed.add_field(name="Fecha Creación", value="Hace 2 días", inline=True)
