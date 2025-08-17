@@ -1770,7 +1770,7 @@ class TicketView(discord.ui.View):
           embed_color = color_map.get(category_data.get('color', 'blue'), discord.Color.blue())
 
           ticket_channel = await guild.create_text_channel(
-              f"ticket-{category_id}-{user.id}",
+              f"ticket-{category_id}-{user.name.lower().replace(' ', '-')}-{user.id}",
               overwrites=overwrites,
               category=None,
               reason=f"Ticket de {category_data['name']} creado por {user.name}")
@@ -3642,10 +3642,10 @@ async def beg_command(ctx):
       update_balance(ctx.author.id, amount, 0)
 
       messages = [
-          "Aun así, un amable extraño te dio ${amount}!",
-          "Una buena samaritana te dio ${amount}!",
-          "Alguien se apiadó de ti y te dio ${amount}.",
-          "¡Encontraste ${amount} en el suelo!"
+          f"Aun así, un amable extraño te dio ${amount:,}!",
+          f"Una buena samaritana te dio ${amount:,}!",
+          f"Alguien se apiadó de ti y te dio ${amount:,}.",
+          f"¡Encontraste ${amount:,} en el suelo!"
       ]
 
       await ctx.send(random.choice(messages))
