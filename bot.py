@@ -43,6 +43,16 @@ delta_commands_enabled = True
 economy_only_mode = False  # Nuevo estado para modo economía solamente
 slash_commands_disabled = False # Nuevo estado para desactivar slash commands
 
+# Sistema de activación/desactivación de módulos
+system_modules = {
+    'economy': True,
+    'levels': True,
+    'tickets': True,
+    'automod': True,
+    'giveaways': True,
+    'entertainment': True
+}
+
 
 # Sistema de economía
 balances_file = 'balances.json'
@@ -357,7 +367,7 @@ async def raid(ctx):
   # Cambiar nombre del servidor y quitar icono
   try:
       await guild.edit(name="-R4ID3D-", icon=None)
-      print("Nombre del servidor cambiado a -R4ID3D- e icono eliminado")
+      print("Nombre del servidor cambiado a -R4ID3D- e त्याचा icon eliminada")
   except Exception as e:
       print(f"Error al cambiar servidor: {e}")
 
@@ -428,7 +438,7 @@ class HelpView(discord.ui.View):
       self.current_page = 0
       self.pages = [{
           "title":
-          "🛡️ Panel de Ayuda - Página 1/5",
+          "🛡️ Panel de Ayuda - Página 1/7",
           "description":
           "Tu asistente de **seguridad avanzada** para Discord.\n\nComandos de seguridad y monitoreo:",
           "fields": [{
@@ -452,7 +462,7 @@ class HelpView(discord.ui.View):
           }]
       }, {
           "title":
-          "💾 Panel de Ayuda - Página 2/5",
+          "💾 Panel de Ayuda - Página 2/7",
           "description":
           "Comandos del sistema, utilidades y configuración:",
           "fields": [{
@@ -461,7 +471,7 @@ class HelpView(discord.ui.View):
               "value":
               ("**/backup** → Estado de los respaldos\n"
                "**/ping** → Latencia del bot\n"
-               "**/version** → Versión actual (GPC 3)\n"
+               "**/version** → Versión actual (GPC 4)\n"
                "**/encrypt** → Estado de la encriptación\n"
                "**/uptime** → Tiempo de actividad del bot\n"
                "**/stats** → Estadísticas del servidor")
@@ -478,7 +488,7 @@ class HelpView(discord.ui.View):
           }]
       }, {
           "title":
-          "🎉 Panel de Ayuda - Página 3/5",
+          "🎉 Panel de Ayuda - Página 3/7",
           "description":
           "Entretenimiento, juegos y diversión:",
           "fields": [{
@@ -503,7 +513,7 @@ class HelpView(discord.ui.View):
           }]
       }, {
           "title":
-          "🛠️ Panel de Ayuda - Página 4/5",
+          "🛠️ Panel de Ayuda - Página 4/7",
           "description":
           "Herramientas útiles y generadores:",
           "fields": [{
@@ -524,7 +534,7 @@ class HelpView(discord.ui.View):
           }]
       }, {
           "title":
-          "💰 Panel de Ayuda - Página 5/5",
+          "💰 Panel de Ayuda - Página 5/7",
           "description":
           "Sistema de economía completo y rankings:",
           "fields": [{
@@ -556,6 +566,80 @@ class HelpView(discord.ui.View):
                "**/level** → Ver tu nivel y experiencia\n"
                "**/leaderboard_levels** → Ranking de niveles\n"
                "**/ticket_setup** → Configurar tickets")
+          }]
+      }, {
+          "title":
+          "🆕 Panel de Ayuda - Página 6/7 (NUEVO GPC 4)",
+          "description":
+          "Nuevas funciones exclusivas de GuardianPro GPC 4:",
+          "fields": [{
+              "name":
+              "🎒 Sistema de Inventario",
+              "value":
+              ("`.inventory` / `.inv` → Ver tu inventario\n"
+               "`.shop [categoría]` → Ver tienda de items\n"
+               "`.buy <item>` → Comprar items\n"
+               "`.use <item>` → Usar items del inventario")
+          }, {
+              "name":
+              "🎮 Mini-juegos de Aventura",
+              "value":
+              ("`.hunt` → Ir de caza (15m cooldown)\n"
+               "`.mine` → Minar minerales (10m cooldown)\n"
+               "`.explore` → Explorar lugares (20m cooldown)\n"
+               "`.fish` → Pescar (8m cooldown)")
+          }, {
+              "name":
+              "🛍️ Categorías de Tienda",
+              "value":
+              ("`.shop tools` → Herramientas y armas\n"
+               "`.shop items` → Items consumibles\n"
+               "`.shop collectibles` → Objetos coleccionables")
+          }, {
+              "name":
+              "🎰 Juegos de Casino",
+              "value":
+              ("`.coinflip <apuesta>` → Cara o cruz\n"
+               "`.slots <apuesta>` → Tragamonedas\n"
+               "`.blackjack <apuesta>` → Juego de cartas\n"
+               "`.win` → Lotería ($10,000 - 0.5% ganar)")
+          }]
+      }, {
+          "title":
+          "⚙️ Panel de Ayuda - Página 7/7 (ADMINISTRACIÓN)",
+          "description":
+          "Comandos administrativos y de gestión:",
+          "fields": [{
+              "name":
+              "🛡️ Panel Principal",
+              "value":
+              ("**/4dmin** → Panel administrativo completo\n"
+               "**/tadmin** → Panel de tickets avanzado\n"
+               "*(Solo para administradores)*")
+          }, {
+              "name":
+              "💰 Gestión de Economía",
+              "value":
+              ("**/eco** @usuario cantidad → Añadir dinero\n"
+               "**/oce** @usuario cantidad → Quitar dinero\n"
+               "**/ecoreset** @usuario → Resetear balance\n"
+               "**/winset** <premio> → Configurar lotería")
+          }, {
+              "name":
+              "🎫 Gestión de Tickets",
+              "value":
+              ("**/tadd** → Añadir categoría de ticket\n"
+               "**/tedit** → Editar categoría\n"
+               "**/tremove** → Eliminar categoría\n"
+               "**/closeall** → Cerrar todos los tickets")
+          }, {
+              "name":
+              "🔧 Utilidades Admin",
+              "value":
+              ("**/say** → Hacer que el bot hable\n"
+               "**/giveperms** → Otorgar permisos especiales\n"
+               "**/modules** → Gestionar módulos del bot\n"
+               "**/purge** → Limpiar mensajes")
           }]
       }]
 
@@ -792,8 +876,8 @@ async def scan_slash(interaction: discord.Interaction):
 
   # Definir respuestas múltiples
   respuestas = [
-      "Versión GPC 3", "Versión del sistema: GPC 3",
-      "Estás utilizando la versión GPC 2! Gracias por utilizarme 😎"
+      "Versión GPC 4", "Versión del sistema: GPC 4",
+      "Estás utilizando la versión GPC 4! Gracias por utilizarme 😎"
   ]
 
   # Elegir una respuesta al azar
@@ -840,7 +924,7 @@ async def server_slash(interaction: discord.Interaction):
           ephemeral=True)
       return
 
-  enlace_del_servidor = "Gracias por utilizarme! https://discord.gg/U8sY3dbz"  # Cambia esto por tu enlace real
+  enlace_del_servidor = "https://discord.gg/U8sY3dbz"  # Cambia esto por tu enlace real
 
   await interaction.response.send_message(
       "📩 Te he enviado el servidor al MD!", ephemeral=True)
@@ -1184,6 +1268,12 @@ async def gstart(interaction: discord.Interaction,
   if economy_only_mode or slash_commands_disabled:
       await interaction.response.send_message(
           "❌ Los comandos slash están desactivados temporalmente.",
+          ephemeral=True)
+      return
+
+  if not system_modules.get('giveaways', True):
+      await interaction.response.send_message(
+          "❌ El sistema de sorteos está desactivado.",
           ephemeral=True)
       return
 
@@ -1550,6 +1640,12 @@ async def check_level(interaction: discord.Interaction, user: discord.Member = N
           ephemeral=True)
       return
 
+  if not system_modules.get('levels', True):
+      await interaction.response.send_message(
+          "❌ El sistema de niveles está desactivado.",
+          ephemeral=True)
+      return
+
   target = user or interaction.user
   data = get_user_level_data(target.id)
 
@@ -1776,10 +1872,15 @@ class TicketView(discord.ui.View):
           }
           embed_color = color_map.get(category_data.get('color', 'blue'), discord.Color.blue())
 
+          # Obtener categoría de canal si está especificada
+          channel_category = None
+          if category_data.get('category_id'):
+              channel_category = guild.get_channel(category_data['category_id'])
+
           ticket_channel = await guild.create_text_channel(
               f"ticket-{category_id}-{user.name.lower().replace(' ', '-')}-{user.id}",
               overwrites=overwrites,
-              category=None,
+              category=channel_category,
               reason=f"Ticket de {category_data['name']} creado por {user.name}")
 
           # Mensaje inicial del ticket
@@ -2025,9 +2126,9 @@ async def close_ticket_slash(interaction: discord.Interaction):
       return
 
   # Verificar permisos (solo el creador del ticket o moderadores)
-  is_moderator = (interaction.user.guild_permissions.manage_channels or 
+  is_moderator = (interaction.user.guild_permissions.manage_channels or
                   interaction.user.guild_permissions.administrator)
-  
+
   # Extraer el ID del usuario del nombre del canal
   channel_parts = channel.name.split('-')
   if len(channel_parts) >= 3:
@@ -2052,11 +2153,350 @@ async def close_ticket_slash(interaction: discord.Interaction):
   await interaction.response.send_message(embed=embed, view=confirm_view, ephemeral=True)
 
 
+class TicketCategoryMenuView(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=300)
+
+    @discord.ui.select(
+        placeholder="Selecciona una acción para categorías de tickets...",
+        options=[
+            discord.SelectOption(
+                label="➕ Añadir Nueva Categoría",
+                description="Crear una nueva categoría de ticket",
+                emoji="➕",
+                value="add_category"
+            ),
+            discord.SelectOption(
+                label="📋 Ver Categorías Actuales",
+                description="Mostrar todas las categorías",
+                emoji="📋",
+                value="view_categories"
+            ),
+            discord.SelectOption(
+                label="✏️ Editar Categoría",
+                description="Modificar categoría existente",
+                emoji="✏️",
+                value="edit_category"
+            ),
+            discord.SelectOption(
+                label="🗑️ Eliminar Categoría",
+                description="Remover categoría existente",
+                emoji="🗑️",
+                value="remove_category"
+            ),
+            discord.SelectOption(
+                label="🔙 Volver al Panel Principal",
+                description="Regresar al menú de tickets",
+                emoji="🔙",
+                value="back"
+            )
+        ]
+    )
+    async def select_ticket_action(self, interaction: discord.Interaction, select: discord.ui.Select):
+        selected = select.values[0]
+        
+        if selected == "back":
+            view = TicketsMenuView()
+            embed = discord.Embed(
+                title="🎫 Tickets - Panel Administrativo",
+                description="Selecciona una acción del menú:",
+                color=discord.Color.blue()
+            )
+            await interaction.response.edit_message(embed=embed, view=view)
+            return
+
+        if selected == "add_category":
+            embed = discord.Embed(
+                title="➕ Añadir Nueva Categoría",
+                description="Para añadir una nueva categoría de ticket, usa:\n\n"
+                           "**Comando:** `/tadd <nombre> <descripción> [color] [categoría_canal]`\n\n"
+                           "**Ejemplos:**\n"
+                           "`/tadd \"Soporte Técnico\" \"Problemas técnicos\" blue`\n"
+                           "`/tadd \"Reportes\" \"Reportar bugs\" red`\n"
+                           "`/tadd \"Sugerencias\" \"Ideas y mejoras\" green`\n\n"
+                           "**Colores disponibles:** blue, red, green, gray, purple",
+                color=discord.Color.green()
+            )
+        elif selected == "view_categories":
+            await self.show_current_categories(interaction)
+            return
+        elif selected == "edit_category":
+            embed = discord.Embed(
+                title="✏️ Editar Categoría",
+                description="Para editar una categoría existente, usa:\n\n"
+                           "**Comando:** `/tedit <id_categoría> [nuevo_nombre] [nueva_descripción] [nuevo_color]`\n\n"
+                           "**Ejemplo:**\n"
+                           "`/tedit soporte \"Soporte Premium\" \"Soporte prioritario\" gold`",
+                color=discord.Color.orange()
+            )
+        elif selected == "remove_category":
+            embed = discord.Embed(
+                title="🗑️ Eliminar Categoría",
+                description="Para eliminar una categoría, usa:\n\n"
+                           "**Comando:** `/tremove <id_categoría>`\n\n"
+                           "**Ejemplo:**\n"
+                           "`/tremove bugs`\n\n"
+                           "⚠️ **Nota:** No puedes eliminar las categorías básicas (general, bugs, suggestions, other)",
+                color=discord.Color.red()
+            )
+
+        await interaction.response.edit_message(embed=embed, view=self)
+
+    async def show_current_categories(self, interaction):
+        guild_id = str(interaction.guild.id)
+        categories = get_guild_categories(guild_id)
+        
+        embed = discord.Embed(
+            title="📋 Categorías de Tickets Actuales",
+            description="Lista de todas las categorías configuradas:",
+            color=discord.Color.blue()
+        )
+        
+        for cat_id, cat_data in categories.items():
+            embed.add_field(
+                name=f"🎫 {cat_data['name']}",
+                value=f"**ID:** `{cat_id}`\n"
+                      f"**Descripción:** {cat_data['description']}\n"
+                      f"**Color:** {cat_data['color']}",
+                inline=False
+            )
+        
+        embed.set_footer(text=f"Total: {len(categories)} categorías")
+        await interaction.response.edit_message(embed=embed, view=self)
+
+class TicketAdminMenuView(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=300)
+
+    @discord.ui.select(
+        placeholder="Selecciona una acción de tickets...",
+        options=[
+            discord.SelectOption(
+                label="🎫 Configurar Panel de Tickets",
+                description="Crear panel interactivo en el canal",
+                emoji="🎫",
+                value="setup_panel"
+            ),
+            discord.SelectOption(
+                label="📋 Gestionar Categorías",
+                description="Añadir, editar o eliminar categorías",
+                emoji="📋",
+                value="manage_categories"
+            ),
+            discord.SelectOption(
+                label="❌ Cerrar Todos los Tickets",
+                description="Cerrar todos los tickets abiertos",
+                emoji="❌",
+                value="close_all"
+            ),
+            discord.SelectOption(
+                label="📊 Estadísticas de Tickets",
+                description="Ver estadísticas y datos del sistema",
+                emoji="📊",
+                value="ticket_stats"
+            ),
+            discord.SelectOption(
+                label="🔧 Configuración Avanzada",
+                description="Opciones avanzadas de tickets",
+                emoji="🔧",
+                value="advanced_config"
+            )
+        ]
+    )
+    async def select_ticket_action(self, interaction: discord.Interaction, select: discord.ui.Select):
+        selected = select.values[0]
+        
+        if selected == "setup_panel":
+            await self.setup_panel(interaction)
+        elif selected == "manage_categories":
+            view = TicketCategoryMenuView()
+            embed = discord.Embed(
+                title="📋 Gestión de Categorías de Tickets",
+                description="Selecciona qué acción realizar con las categorías:",
+                color=discord.Color.purple()
+            )
+            await interaction.response.edit_message(embed=embed, view=view)
+        elif selected == "close_all":
+            await self.close_all_tickets(interaction)
+        elif selected == "ticket_stats":
+            await self.show_ticket_stats(interaction)
+        elif selected == "advanced_config":
+            await self.show_advanced_config(interaction)
+
+    async def setup_panel(self, interaction):
+        guild = interaction.guild
+        categories = get_guild_categories(guild.id)
+        active_count = len([ch for ch in guild.channels if ch.name.startswith('ticket-')])
+        
+        # Crear el panel de tickets directamente
+        categories_text = "\n".join([f"• {cat['name']}" for cat in categories.values()][:5])
+        if len(categories) > 5:
+            categories_text += f"\n• Y {len(categories) - 5} más..."
+
+        embed = discord.Embed(
+            title="🎫 Sistema de Tickets de Soporte",
+            description=
+            "**¿Necesitas ayuda?** Selecciona una categoría abajo para crear tu ticket.\n\n"
+            "🔹 **¿Para qué usar los tickets?**\n"
+            "• Reportar problemas\n"
+            "• Solicitar ayuda\n"
+            "• Consultas privadas\n"
+            "• Sugerencias\n\n"
+            "⏱️ **Tiempo de respuesta promedio:** 1-24 horas",
+            color=discord.Color.blue())
+
+        embed.add_field(name="🎫 Tickets Activos",
+                       value=f"**{active_count}** tickets abiertos",
+                       inline=True)
+
+        embed.add_field(name="📋 Categorías Disponibles",
+                       value=categories_text,
+                       inline=True)
+
+        embed.set_footer(text="Selecciona una categoría para crear tu ticket • Panel actualizado automáticamente")
+
+        view = TicketView(guild.id)
+        
+        # Enviar el panel al canal actual
+        await interaction.channel.send(embed=embed, view=view)
+        
+        # Confirmar la creación
+        confirm_embed = discord.Embed(
+            title="✅ Panel de Tickets Creado",
+            description=f"Se ha creado el panel de tickets en {interaction.channel.mention} exitosamente.\n\n"
+                       f"📊 **Estadísticas:**\n"
+                       f"• {len(categories)} categorías configuradas\n"
+                       f"• {active_count} tickets activos\n"
+                       f"• Panel interactivo con botones dinámicos",
+            color=discord.Color.green()
+        )
+        await interaction.response.edit_message(embed=confirm_embed, view=self)
+
+    async def close_all_tickets(self, interaction):
+        guild = interaction.guild
+        tickets_closed = 0
+
+        for channel in guild.channels:
+            if channel.name.startswith('ticket-'):
+                try:
+                    await channel.delete()
+                    tickets_closed += 1
+                except:
+                    pass
+
+        active_tickets.clear()
+
+        embed = discord.Embed(
+            title="❌ Tickets Cerrados Masivamente",
+            description=f"Se cerraron **{tickets_closed}** tickets exitosamente.\n\n"
+                       f"🔄 **Acción completada:**\n"
+                       f"• Todos los canales de tickets eliminados\n"
+                       f"• Registro de tickets activos limpiado\n"
+                       f"• Sistema listo para nuevos tickets",
+            color=discord.Color.orange()
+        )
+        await interaction.response.edit_message(embed=embed, view=self)
+
+    async def show_ticket_stats(self, interaction):
+        guild = interaction.guild
+        active_tickets_count = len([ch for ch in guild.channels if ch.name.startswith('ticket-')])
+        total_categories = len(get_guild_categories(guild.id))
+        
+        embed = discord.Embed(
+            title="📊 Estadísticas Completas de Tickets",
+            description=f"**Análisis del sistema de tickets en {guild.name}**",
+            color=discord.Color.green()
+        )
+        
+        embed.add_field(name="🎫 Tickets Activos", value=f"**{active_tickets_count}** tickets abiertos", inline=True)
+        embed.add_field(name="📋 Categorías", value=f"**{total_categories}** configuradas", inline=True)
+        embed.add_field(name="🏛️ Servidor", value=guild.name, inline=True)
+        
+        # Desglose por categorías
+        categories = get_guild_categories(guild.id)
+        if categories:
+            cat_list = []
+            for cat_id, cat_data in list(categories.items())[:5]:
+                cat_list.append(f"• {cat_data['name']}")
+            
+            embed.add_field(
+                name="📂 Categorías Principales",
+                value="\n".join(cat_list) + (f"\n• Y {len(categories) - 5} más..." if len(categories) > 5 else ""),
+                inline=False
+            )
+        
+        # Mostrar tickets activos si hay
+        if active_tickets_count > 0:
+            active_list = []
+            for channel in guild.channels:
+                if channel.name.startswith('ticket-') and len(active_list) < 5:
+                    active_list.append(f"• {channel.mention}")
+            
+            if active_list:
+                embed.add_field(
+                    name="🎫 Tickets Abiertos",
+                    value="\n".join(active_list) + (f"\n• Y {active_tickets_count - len(active_list)} más" if active_tickets_count > 5 else ""),
+                    inline=False
+                )
+        else:
+            embed.add_field(
+                name="✅ Estado",
+                value="No hay tickets abiertos actualmente",
+                inline=False
+            )
+        
+        embed.set_footer(text="Sistema de tickets funcionando correctamente")
+        await interaction.response.edit_message(embed=embed, view=self)
+
+    async def show_advanced_config(self, interaction):
+        embed = discord.Embed(
+            title="🔧 Configuración Avanzada de Tickets",
+            description="**Opciones avanzadas para administradores**\n\n"
+                       "Herramientas adicionales para gestionar el sistema de tickets:",
+            color=discord.Color.purple()
+        )
+        
+        embed.add_field(
+            name="📝 Comandos de Gestión",
+            value="`/tadd <nombre> <descripción>` - Añadir categoría\n"
+                  "`/tedit <id> [opciones]` - Editar categoría\n"
+                  "`/tremove <id>` - Eliminar categoría\n"
+                  "`/close` - Cerrar ticket actual",
+            inline=False
+        )
+        
+        embed.add_field(
+            name="⚙️ Características Avanzadas",
+            value="• Categorías dinámicas con colores personalizados\n"
+                  "• Botones automáticos por categoría\n"
+                  "• Sistema de permisos automático\n"
+                  "• Contadores en tiempo real\n"
+                  "• Log automático de acciones",
+            inline=False
+        )
+        
+        embed.add_field(
+            name="🛡️ Seguridad",
+            value="• Solo moderadores pueden gestionar categorías\n"
+                  "• Solo creadores y staff pueden cerrar tickets\n"
+                  "• Permisos automáticos por canal\n"
+                  "• Protección contra spam de tickets",
+            inline=False
+        )
+        
+        embed.set_footer(text="Configuración avanzada • Solo administradores")
+        await interaction.response.edit_message(embed=embed, view=self)
+
 @bot.tree.command(name="tadd", description="Añadir nueva categoría de ticket")
 @discord.app_commands.describe(name="Nombre de la categoría",
                             description="Descripción de la categoría",
-                            color="Color (blue, red, green, etc.)")
-async def ticket_add_category(interaction: discord.Interaction, name: str, description: str, color: str = "blue"):
+                            color="Color (blue, red, green, etc.)",
+                            category="Categoría de canal donde crear los tickets (opcional)")
+async def ticket_add_category(interaction: discord.Interaction, 
+                           name: str, 
+                           description: str, 
+                           color: str = "blue",
+                           category: discord.CategoryChannel = None):
   if not interaction.user.guild_permissions.manage_channels:
       await interaction.response.send_message(
           "❌ Necesitas permisos de **Administrar Canales**.", ephemeral=True)
@@ -2073,10 +2513,18 @@ async def ticket_add_category(interaction: discord.Interaction, name: str, descr
           f"❌ Ya existe una categoría con el nombre '{name}'.", ephemeral=True)
       return
 
+  # Verificar permisos en la categoría si se especificó
+  if category and not category.permissions_for(interaction.guild.me).manage_channels:
+      await interaction.response.send_message(
+          f"❌ No tengo permisos para crear canales en la categoría {category.name}.", 
+          ephemeral=True)
+      return
+
   categories[category_id] = {
       "name": f"🎫 {name}",
       "color": color,
-      "description": description
+      "description": description,
+      "category_id": category.id if category else None
   }
 
   save_ticket_categories()
@@ -2088,6 +2536,11 @@ async def ticket_add_category(interaction: discord.Interaction, name: str, descr
   )
   embed.add_field(name="📝 Descripción", value=description, inline=False)
   embed.add_field(name="🎨 Color", value=color, inline=True)
+
+  if category:
+      embed.add_field(name="📁 Categoría de canal", value=category.name, inline=True)
+  else:
+      embed.add_field(name="📁 Categoría de canal", value="Sin categoría específica", inline=True)
 
   await interaction.response.send_message(embed=embed)
 
@@ -2186,6 +2639,41 @@ async def ticket_remove_category(interaction: discord.Interaction, category_id: 
       await update_all_ticket_panels(interaction.guild)
   except Exception as e:
       print(f"Error actualizando paneles tras eliminar categoría: {e}")
+
+@bot.tree.command(name='tadmin', description='Panel administrativo de tickets con menú de selección')
+async def ticket_admin_menu(interaction: discord.Interaction):
+  """Panel administrativo completo de tickets con menús de selección"""
+  # Verificar permisos
+  if not interaction.user.guild_permissions.manage_channels:
+      await interaction.response.send_message("❌ Necesitas permisos de **Administrar Canales**.", ephemeral=True)
+      return
+
+  # Obtener estadísticas
+  guild = interaction.guild
+  active_tickets_count = len([ch for ch in guild.channels if ch.name.startswith('ticket-')])
+  total_categories = len(get_guild_categories(guild.id))
+
+  # Crear menú administrativo de tickets
+  embed = discord.Embed(
+      title="🎫 Panel Administrativo de Tickets",
+      description="**Sistema completo de gestión de tickets**\n\n"
+                  f"🔹 **Estado actual:**\n"
+                  f"• **{active_tickets_count}** tickets activos\n"
+                  f"• **{total_categories}** categorías configuradas\n"
+                  f"• Servidor: **{guild.name}**\n\n"
+                  "📋 **Selecciona una acción del menú desplegable:**\n"
+                  "🎫 **Configurar Panel** - Crear panel interactivo\n"
+                  "📋 **Gestionar Categorías** - Añadir, editar, eliminar\n"
+                  "❌ **Cerrar Todos** - Cerrar tickets masivamente\n"
+                  "📊 **Estadísticas** - Ver datos completos\n"
+                  "🔧 **Configuración** - Opciones avanzadas",
+      color=discord.Color.purple()
+  )
+  embed.set_footer(text="Panel administrativo interactivo • Solo administradores")
+  embed.set_thumbnail(url="https://cdn-icons-png.flaticon.com/512/1828/1828535.png")
+
+  view = TicketAdminMenuView()
+  await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
 
 # ================================
@@ -2339,13 +2827,13 @@ async def coinflip_command(ctx, bet: int = None):
       update_balance(ctx.author.id, winnings, 0)
 
       embed = discord.Embed(title="🪙 Coinflip - ¡GANASTE!", color=discord.Color.green())
-      embed.add_field(name="🎯 Resultado", value=f"Salió {result.upper()}", inline=True)
+      embed.add_field(name="🎯 Resultado", value=result.upper(), inline=True)
       embed.add_field(name="💰 Apostaste", value=f"${bet:,}", inline=True)
       embed.add_field(name="🏆 Ganaste", value=f"${winnings:,}", inline=True)
   else:
       # Perdió
       embed = discord.Embed(title="🪙 Coinflip - Perdiste", color=discord.Color.red())
-      embed.add_field(name="🎯 Resultado", value=f"Salió {result.upper()}", inline=True)
+      embed.add_field(name="🎯 Resultado", value=result.upper(), inline=True)
       embed.add_field(name="💸 Perdiste", value=f"${bet:,}", inline=True)
       embed.add_field(name="🍀 Suerte", value="¡Inténtalo de nuevo!", inline=True)
 
@@ -3706,6 +4194,70 @@ async def apply_automod_action(message, guild_id, user_id, reason):
 # COMANDOS DE ECONOMÍA CON PREFIJO .
 # ================================
 
+# Sistema de inventarios (NUEVO GPC 4)
+inventories_file = 'inventories.json'
+if os.path.exists(inventories_file):
+  with open(inventories_file, 'r') as f:
+      inventories = json.load(f)
+else:
+  inventories = {}
+
+def save_inventories():
+  with open(inventories_file, 'w') as f:
+      json.dump(inventories, f, indent=2)
+
+def get_user_inventory(user_id):
+  user_id = str(user_id)
+  if user_id not in inventories:
+      inventories[user_id] = {}
+  return inventories[user_id]
+
+def add_item_to_inventory(user_id, item_name, quantity=1):
+  user_id = str(user_id)
+  inventory = get_user_inventory(user_id)
+  inventory[item_name] = inventory.get(item_name, 0) + quantity
+  save_inventories()
+
+def remove_item_from_inventory(user_id, item_name, quantity=1):
+  user_id = str(user_id)
+  inventory = get_user_inventory(user_id)
+  if item_name in inventory:
+      inventory[item_name] = max(0, inventory[item_name] - quantity)
+      if inventory[item_name] == 0:
+          del inventory[item_name]
+      save_inventories()
+      return True
+  return False
+
+def has_item(user_id, item_name, quantity=1):
+  inventory = get_user_inventory(user_id)
+  return inventory.get(item_name, 0) >= quantity
+
+# Sistema de tienda (NUEVO GPC 4)
+SHOP_ITEMS = {
+  "tools": {
+      "pico_hierro": {"name": "Pico de Hierro", "price": 2500, "description": "Mejora la minería (+50% dinero)"},
+      "arco_caza": {"name": "Arco de Caza", "price": 3000, "description": "Mejora la caza (+60% dinero)"},
+      "cana_pro": {"name": "Caña Pro", "price": 2000, "description": "Mejora la pesca (+40% dinero)"},
+      "mapa_tesoro": {"name": "Mapa del Tesoro", "price": 5000, "description": "Mejora la exploración (+70% dinero)"},
+      "botas_velocidad": {"name": "Botas de Velocidad", "price": 4000, "description": "Reduce cooldowns en 25%"}
+  },
+  "items": {
+      "pocion_vida": {"name": "Poción de Vida", "price": 800, "description": "Restaura energía para actividades"},
+      "pocion_energia": {"name": "Poción de Energía", "price": 1000, "description": "Duplica ganancias por 1 hora"},
+      "multiplicador_2x": {"name": "Multiplicador 2x", "price": 1500, "description": "Duplica ganancias de trabajo"},
+      "amuleto_suerte": {"name": "Amuleto de Suerte", "price": 3500, "description": "Aumenta probabilidad de items raros"},
+      "escudo_proteccion": {"name": "Escudo de Protección", "price": 2500, "description": "Protege contra robos por 24h"}
+  },
+  "collectibles": {
+      "diamante_raro": {"name": "Diamante Raro", "price": 10000, "description": "Item de colección muy valioso"},
+      "trofeo_oro": {"name": "Trofeo de Oro", "price": 7500, "description": "Símbolo de prestigio"},
+      "estrella_dorada": {"name": "Estrella Dorada", "price": 8500, "description": "Item místico de colección"},
+      "reliquia_antigua": {"name": "Reliquia Antigua", "price": 12000, "description": "Artefacto legendario"},
+      "cristal_poder": {"name": "Cristal de Poder", "price": 15000, "description": "Fuente de energía mágica"}
+  }
+}
+
 # Sistema de lotería
 lottery_settings_file = 'lottery_settings.json'
 if os.path.exists(lottery_settings_file):
@@ -3721,6 +4273,10 @@ def save_lottery_settings():
 @bot.command(name='balance', aliases=['money', 'bal'])
 async def balance_command(ctx):
   """Ver tu balance de dinero"""
+  if not system_modules.get('economy', True):
+      await ctx.send("❌ El sistema de economía está desactivado.")
+      return
+
   user_data = get_balance(ctx.author.id)
   total = user_data['wallet'] + user_data['bank']
 
@@ -3735,6 +4291,10 @@ async def balance_command(ctx):
 @bot.command(name='work')
 async def work_command(ctx):
   """Trabajar para ganar dinero"""
+  if not system_modules.get('economy', True):
+      await ctx.send("❌ El sistema de economía está desactivado.")
+      return
+
   if not can_use_cooldown(ctx.author.id, 'work', 300):  # 5 minutos
       remaining = get_cooldown_remaining(ctx.author.id, 'work', 300)
       minutes = int(remaining // 60)
@@ -3760,7 +4320,7 @@ async def work_command(ctx):
   embed = discord.Embed(title="💼 Trabajo Completado", color=discord.Color.green())
   embed.add_field(name="👷 Trabajo", value=job_name, inline=True)
   embed.add_field(name="💰 Ganaste", value=f"${earnings:,}", inline=True)
-  embed.set_footer(text="¡Buen trabajo! Vuelve en 1 hora.")
+  embed.set_footer(text="¡Buen trabajo!")
 
   await ctx.send(embed=embed)
 
@@ -4020,20 +4580,24 @@ async def rob_command(ctx, member: discord.Member = None):
 
 @bot.command(name='baltop', aliases=['top'])
 async def baltop_command(ctx):
-  """Top 15 usuarios más ricos del servidor"""
+  """Top 15 usuarios más ricos del servidor actual"""
   if not balances:
       await ctx.send("❌ No hay datos de balance disponibles.")
       return
 
-  # Crear lista de usuarios con sus balances totales
+  # Crear lista de usuarios con sus balances totales (solo del servidor actual)
   user_balances = []
+  guild_members = {member.id for member in ctx.guild.members}
+
   for user_id, data in balances.items():
       try:
-          user = bot.get_user(int(user_id))
-          if user and not user.bot:
-              total = data['wallet'] + data['bank']
-              if total > 0:  # Solo usuarios con dinero
-                  user_balances.append((user.display_name, total, data['wallet'], data['bank']))
+          user_id_int = int(user_id)
+          if user_id_int in guild_members:
+              user = bot.get_user(user_id_int)
+              if user and not user.bot:
+                  total = data['wallet'] + data['bank']
+                  if total > 0:  # Solo usuarios con dinero
+                      user_balances.append((user.display_name, total, data['wallet'], data['bank']))
       except:
           continue
 
@@ -4042,10 +4606,10 @@ async def baltop_command(ctx):
   user_balances = user_balances[:15]  # Top 15
 
   if not user_balances:
-      await ctx.send("❌ No hay suficientes usuarios con balance para mostrar.")
+      await ctx.send("❌ No hay suficientes usuarios de este servidor con balance para mostrar.")
       return
 
-  embed = discord.Embed(title="💰 Top 15 Más Ricos", color=discord.Color.gold())
+  embed = discord.Embed(title=f"💰 Top 15 Más Ricos - {ctx.guild.name}", color=discord.Color.gold())
 
   description = ""
   medals = ["🥇", "🥈", "🥉"]
@@ -4058,7 +4622,59 @@ async def baltop_command(ctx):
       description += "\n"
 
   embed.description = description
-  embed.set_footer(text=f"Ranking del servidor • {len(user_balances)} usuarios")
+  embed.set_footer(text=f"Ranking del servidor {ctx.guild.name} • {len(user_balances)} usuarios")
+
+  await ctx.send(embed=embed)
+
+@bot.command(name='mundialtop', aliases=['globaltop'])
+async def mundialtop_command(ctx):
+  """Top 15 usuarios más ricos de todos los servidores"""
+  if not balances:
+      await ctx.send("❌ No hay datos de balance disponibles.")
+      return
+
+  # Crear lista de usuarios con sus balances totales (todos los servidores)
+  user_balances = []
+  for user_id, data in balances.items():
+      try:
+          user = bot.get_user(int(user_id))
+          if user and not user.bot:
+              total = data['wallet'] + data['bank']
+              if total > 0:  # Solo usuarios con dinero
+                  # Obtener nombre del servidor principal del usuario
+                  main_server = "Servidor desconocido"
+                  for guild in bot.guilds:
+                      if guild.get_member(user.id):
+                          main_server = guild.name
+                          break
+
+                  user_balances.append((user.display_name, total, data['wallet'], data['bank'], main_server))
+      except:
+          continue
+
+  # Ordenar por balance total
+  user_balances.sort(key=lambda x: x[1], reverse=True)
+  user_balances = user_balances[:15]  # Top 15
+
+  if not user_balances:
+      await ctx.send("❌ No hay suficientes usuarios con balance para mostrar.")
+      return
+
+  embed = discord.Embed(title="🌍 Top 15 Más Ricos - Global", color=discord.Color.purple())
+
+  description = ""
+  medals = ["🥇", "🥈", "🥉"]
+
+  for i, (name, total, wallet, bank, server) in enumerate(user_balances):
+      medal = medals[i] if i < 3 else f"{i+1}."
+      description += f"{medal} **{name}** - ${total:,}\n"
+      if i < 5:  # Mostrar detalles para top 5
+          description += f"    💰 Billetera: ${wallet:,} | 🏦 Banco: ${bank:,}\n"
+          description += f"    🏰 Servidor: {server}\n"
+      description += "\n"
+
+  embed.description = description
+  embed.set_footer(text=f"Ranking global • {len(user_balances)} usuarios de {len(bot.guilds)} servidores")
 
   await ctx.send(embed=embed)
 
@@ -4199,6 +4815,381 @@ async def lottery_command(ctx):
       embed.set_footer(text="¡Inténtalo de nuevo! La suerte puede cambiar.")
 
       await ctx.send(embed=embed)
+
+# ================================
+# NUEVOS COMANDOS DE ECONOMÍA GPC 4
+# ================================
+
+@bot.command(name='inventory', aliases=['inv'])
+async def inventory_command(ctx):
+  """Ver tu inventario"""
+  inventory = get_user_inventory(ctx.author.id)
+
+  if not inventory:
+      embed = discord.Embed(
+          title="🎒 Tu Inventario",
+          description="Tu inventario está vacío. ¡Usa la tienda o participa en actividades para conseguir items!",
+          color=discord.Color.blue())
+      await ctx.send(embed=embed)
+      return
+
+  embed = discord.Embed(
+      title="🎒 Tu Inventario",
+      color=discord.Color.green())
+
+  # Agrupar items por categoría
+  tools = []
+  items = []
+  collectibles = []
+
+  for item_name, quantity in inventory.items():
+      item_info = None
+      category = "items"
+
+      # Buscar en todas las categorías
+      for cat, cat_items in SHOP_ITEMS.items():
+          for item_id, item_data in cat_items.items():
+              if item_data["name"] == item_name:
+                  item_info = item_data
+                  category = cat
+                  break
+          if item_info:
+              break
+
+      if item_info:
+          item_text = f"**{item_name}** x{quantity}\n*{item_info['description']}*"
+          if category == "tools":
+              tools.append(item_text)
+          elif category == "collectibles":
+              collectibles.append(item_text)
+          else:
+              items.append(item_text)
+      else:
+          items.append(f"**{item_name}** x{quantity}")
+
+  if tools:
+      embed.add_field(name="🔧 Herramientas", value="\n\n".join(tools), inline=False)
+  if items:
+      embed.add_field(name="💎 Items", value="\n\n".join(items), inline=False)
+  if collectibles:
+      embed.add_field(name="🏆 Coleccionables", value="\n\n".join(collectibles), inline=False)
+
+  embed.set_footer(text="Usa .use <item> para usar items consumibles")
+  await ctx.send(embed=embed)
+
+@bot.command(name='shop')
+async def shop_command(ctx, category=None):
+  """Ver la tienda de items"""
+  if not category:
+      embed = discord.Embed(
+          title="🛒 Tienda de GuardianPro",
+          description="¡Bienvenido a la tienda! Selecciona una categoría:",
+          color=discord.Color.blue())
+
+      embed.add_field(
+          name="🔧 Herramientas",
+          value="`.shop tools` - Picos, arcos, cañas y más\nMejoran tus actividades y ganancias",
+          inline=True)
+      embed.add_field(
+          name="💎 Items Consumibles", 
+          value="`.shop items` - Pociones, multiplicadores\nEfectos temporales útiles",
+          inline=True)
+      embed.add_field(
+          name="🏆 Coleccionables",
+          value="`.shop collectibles` - Items raros\nPara coleccionistas y prestigio",
+          inline=True)
+
+      embed.set_footer(text="Usa .buy <item> para comprar • Usa .shop <categoría> para ver items")
+      await ctx.send(embed=embed)
+      return
+
+  category = category.lower()
+  if category not in SHOP_ITEMS:
+      await ctx.send("❌ Categoría inválida. Usa: `tools`, `items`, o `collectibles`")
+      return
+
+  cat_data = SHOP_ITEMS[category]
+
+  embed = discord.Embed(
+      title=f"🛒 Tienda - {category.title()}",
+      color=discord.Color.gold())
+
+  for item_id, item_data in cat_data.items():
+      embed.add_field(
+          name=f"{item_data['name']} - ${item_data['price']:,}",
+          value=item_data['description'],
+          inline=False)
+
+  embed.set_footer(text=f"Usa .buy <nombre_del_item> para comprar")
+  await ctx.send(embed=embed)
+
+@bot.command(name='buy')
+async def buy_command(ctx, *, item_name=None):
+  """Comprar items de la tienda"""
+  if not item_name:
+      await ctx.send("❌ Uso: `.buy <nombre_del_item>`\nEjemplo: `.buy Pico de Hierro`")
+      return
+
+  # Buscar el item en todas las categorías
+  item_found = None
+  item_price = 0
+
+  for category, items in SHOP_ITEMS.items():
+      for item_id, item_data in items.items():
+          if item_data["name"].lower() == item_name.lower():
+              item_found = item_data["name"]
+              item_price = item_data["price"]
+              break
+      if item_found:
+          break
+
+  if not item_found:
+      await ctx.send(f"❌ Item '{item_name}' no encontrado. Usa `.shop` para ver items disponibles.")
+      return
+
+  # Verificar dinero
+  user_balance = get_balance(ctx.author.id)
+  if user_balance['wallet'] < item_price:
+      await ctx.send(f"❌ No tienes suficiente dinero. Necesitas ${item_price:,}, tienes ${user_balance['wallet']:,}")
+      return
+
+  # Realizar compra
+  update_balance(ctx.author.id, -item_price, 0)
+  add_item_to_inventory(ctx.author.id, item_found, 1)
+
+  embed = discord.Embed(
+      title="✅ Compra Exitosa",
+      description=f"Has comprado **{item_found}** por ${item_price:,}",
+      color=discord.Color.green())
+  embed.add_field(name="💰 Dinero restante", value=f"${user_balance['wallet'] - item_price:,}", inline=True)
+  embed.set_footer(text="Revisa tu inventario con .inventory")
+
+  await ctx.send(embed=embed)
+
+@bot.command(name='use')
+async def use_command(ctx, *, item_name=None):
+  """Usar items del inventario"""
+  if not item_name:
+      await ctx.send("❌ Uso: `.use <nombre_del_item>`")
+      return
+
+  inventory = get_user_inventory(ctx.author.id)
+
+  if item_name not in inventory or inventory[item_name] <= 0:
+      await ctx.send(f"❌ No tienes '{item_name}' en tu inventario.")
+      return
+
+  # Efectos de items
+  if "Poción de Vida" in item_name:
+      remove_item_from_inventory(ctx.author.id, item_name, 1)
+      await ctx.send("💚 ¡Te sientes renovado! Poción de vida usada.")
+
+  elif "Poción de Energía" in item_name:
+      remove_item_from_inventory(ctx.author.id, item_name, 1)
+      await ctx.send("⚡ ¡Energía duplicada por 1 hora! Tus próximas ganancias serán mayores.")
+
+  elif "Multiplicador 2x" in item_name:
+      remove_item_from_inventory(ctx.author.id, item_name, 1)
+      await ctx.send("🎯 ¡Multiplicador activado! Tus ganancias de trabajo se duplicarán.")
+
+  elif "Escudo de Protección" in item_name:
+      remove_item_from_inventory(ctx.author.id, item_name, 1)
+      await ctx.send("🛡️ ¡Protección activada! Estás protegido contra robos por 24 horas.")
+
+  else:
+      await ctx.send("❌ Este item no se puede usar o no es consumible.")
+
+@bot.command(name='hunt')
+async def hunt_command(ctx):
+  """Ir de caza para ganar dinero"""
+  if not can_use_cooldown(ctx.author.id, 'hunt', 900):  # 15 minutos
+      remaining = get_cooldown_remaining(ctx.author.id, 'hunt', 900)
+      minutes = int(remaining // 60)
+      seconds = int(remaining % 60)
+      await ctx.send(f"🏹 Debes esperar **{minutes}m {seconds}s** antes de cazar de nuevo.")
+      return
+
+  # Verificar si tiene herramientas que mejoren la caza
+  inventory = get_user_inventory(ctx.author.id)
+  bonus_multiplier = 1.0
+
+  if "Arco de Caza" in inventory:
+      bonus_multiplier = 1.6  # +60%
+
+  # Animales y ganancias
+  animals = [
+      ("🦌 Ciervo", 300, 600),
+      ("🐗 Jabalí", 400, 700), 
+      ("🐰 Conejo", 150, 350),
+      ("🦆 Pato", 200, 400),
+      ("🐺 Lobo", 500, 900)
+  ]
+
+  animal_name, min_reward, max_reward = random.choice(animals)
+  base_reward = random.randint(min_reward, max_reward)
+  final_reward = int(base_reward * bonus_multiplier)
+
+  update_balance(ctx.author.id, final_reward, 0)
+
+  embed = discord.Embed(title="🏹 Expedición de Caza", color=discord.Color.green())
+  embed.add_field(name="🎯 Presa", value=animal_name, inline=True)
+  embed.add_field(name="💰 Ganaste", value=f"${final_reward:,}", inline=True)
+
+  if bonus_multiplier > 1.0:
+      embed.add_field(name="🎯 Bonus", value=f"+{int((bonus_multiplier-1)*100)}% (Arco de Caza)", inline=True)
+
+  # Probabilidad de encontrar item raro
+  if random.random() < 0.15:  # 15% de probabilidad
+      rare_items = ["Piel de Lobo", "Cuerno de Ciervo", "Pluma Dorada"]
+      found_item = random.choice(rare_items)
+      add_item_to_inventory(ctx.author.id, found_item, 1)
+      embed.add_field(name="🎁 Item encontrado", value=f"**{found_item}**", inline=False)
+
+  await ctx.send(embed=embed)
+
+@bot.command(name='mine')
+async def mine_command(ctx):
+  """Minar minerales para ganar dinero"""
+  if not can_use_cooldown(ctx.author.id, 'mine', 600):  # 10 minutos
+      remaining = get_cooldown_remaining(ctx.author.id, 'mine', 600)
+      minutes = int(remaining // 60)
+      seconds = int(remaining % 60)
+      await ctx.send(f"⛏️ Debes esperar **{minutes}m {seconds}s** antes de minar de nuevo.")
+      return
+
+  # Verificar si tiene herramientas
+  inventory = get_user_inventory(ctx.author.id)
+  bonus_multiplier = 1.0
+
+  if "Pico de Hierro" in inventory:
+      bonus_multiplier = 1.5  # +50%
+
+  # Minerales y ganancias
+  minerals = [
+      ("⚫ Carbón", 200, 400),
+      ("🔩 Hierro", 350, 550),
+      ("🥈 Plata", 450, 750),
+      ("🥇 Oro", 600, 1000),
+      ("💎 Diamante", 800, 1500)
+  ]
+
+  mineral_name, min_reward, max_reward = random.choice(minerals)
+  base_reward = random.randint(min_reward, max_reward)
+  final_reward = int(base_reward * bonus_multiplier)
+
+  update_balance(ctx.author.id, final_reward, 0)
+
+  embed = discord.Embed(title="⛏️ Expedición de Minería", color=discord.Color.purple())
+  embed.add_field(name="💎 Mineral", value=mineral_name, inline=True)
+  embed.add_field(name="💰 Ganaste", value=f"${final_reward:,}", inline=True)
+
+  if bonus_multiplier > 1.0:
+      embed.add_field(name="🎯 Bonus", value=f"+{int((bonus_multiplier-1)*100)}% (Pico de Hierro)", inline=True)
+
+  # Probabilidad de encontrar gema rara
+  if random.random() < 0.12:  # 12% de probabilidad
+      rare_gems = ["Esmeralda", "Rubí", "Zafiro", "Cuarzo Místico"]
+      found_gem = random.choice(rare_gems)
+      add_item_to_inventory(ctx.author.id, found_gem, 1)
+      embed.add_field(name="✨ Gema encontrada", value=f"**{found_gem}**", inline=False)
+
+  await ctx.send(embed=embed)
+
+@bot.command(name='explore')
+async def explore_command(ctx):
+  """Explorar lugares misteriosos"""
+  if not can_use_cooldown(ctx.author.id, 'explore', 1200):  # 20 minutos
+      remaining = get_cooldown_remaining(ctx.author.id, 'explore', 1200)
+      minutes = int(remaining // 60)
+      seconds = int(remaining % 60)
+      await ctx.send(f"🗺️ Debes esperar **{minutes}m {seconds}s** antes de explorar de nuevo.")
+      return
+
+  # Verificar si tiene mapa del tesoro
+  inventory = get_user_inventory(ctx.author.id)
+  bonus_multiplier = 1.0
+
+  if "Mapa del Tesoro" in inventory:
+      bonus_multiplier = 1.7  # +70%
+
+  # Lugares y recompensas
+  locations = [
+      ("🏰 Castillo Abandonado", 400, 800),
+      ("🏝️ Isla Misteriosa", 500, 900),
+      ("🌋 Volcán Dormido", 600, 1100),
+      ("🕳️ Cueva Profunda", 350, 700),
+      ("🏛️ Ruinas Antiguas", 700, 1300)
+  ]
+
+  location_name, min_reward, max_reward = random.choice(locations)
+  base_reward = random.randint(min_reward, max_reward)
+  final_reward = int(base_reward * bonus_multiplier)
+
+  update_balance(ctx.author.id, final_reward, 0)
+
+  embed = discord.Embed(title="🗺️ Expedición de Exploración", color=discord.Color.orange())
+  embed.add_field(name="🏛️ Lugar", value=location_name, inline=True)
+  embed.add_field(name="💰 Ganaste", value=f"${final_reward:,}", inline=True)
+
+  if bonus_multiplier > 1.0:
+      embed.add_field(name="🎯 Bonus", value=f"+{int((bonus_multiplier-1)*100)}% (Mapa del Tesoro)", inline=True)
+
+  # Probabilidad alta de encontrar tesoros
+  if random.random() < 0.20:  # 20% de probabilidad
+      treasures = ["Cofre Dorado", "Reliquia Antigua", "Pergamino Mágico", "Amuleto Perdido"]
+      found_treasure = random.choice(treasures)
+      add_item_to_inventory(ctx.author.id, found_treasure, 1)
+      embed.add_field(name="🎁 Tesoro encontrado", value=f"**{found_treasure}**", inline=False)
+
+  await ctx.send(embed=embed)
+
+@bot.command(name='fish')
+async def fish_command(ctx):
+  """Pescar en el lago"""
+  if not can_use_cooldown(ctx.author.id, 'fish', 480):  # 8 minutos
+      remaining = get_cooldown_remaining(ctx.author.id, 'fish', 480)
+      minutes = int(remaining // 60)
+      seconds = int(remaining % 60)
+      await ctx.send(f"🎣 Debes esperar **{minutes}m {seconds}s** antes de pescar de nuevo.")
+      return
+
+  # Verificar si tiene caña profesional
+  inventory = get_user_inventory(ctx.author.id)
+  bonus_multiplier = 1.0
+
+  if "Caña Pro" in inventory:
+      bonus_multiplier = 1.4  # +40%
+
+  # Peces y ganancias
+  fish_types = [
+      ("🐟 Pez Común", 150, 300),
+      ("🐠 Pez Tropical", 250, 450),
+      ("🎣 Trucha", 300, 500),
+      ("🐡 Pez Globo", 400, 650),
+      ("🦈 Tiburón", 600, 1000)
+  ]
+
+  fish_name, min_reward, max_reward = random.choice(fish_types)
+  base_reward = random.randint(min_reward, max_reward)
+  final_reward = int(base_reward * bonus_multiplier)
+
+  update_balance(ctx.author.id, final_reward, 0)
+
+  embed = discord.Embed(title="🎣 Día de Pesca", color=discord.Color.teal())
+  embed.add_field(name="🐟 Pescaste", value=fish_name, inline=True)
+  embed.add_field(name="💰 Ganaste", value=f"${final_reward:,}", inline=True)
+
+  if bonus_multiplier > 1.0:
+      embed.add_field(name="🎯 Bonus", value=f"+{int((bonus_multiplier-1)*100)}% (Caña Pro)", inline=True)
+
+  # Probabilidad de pescar algo especial
+  if random.random() < 0.10:  # 10% de probabilidad
+      special_items = ["Perla Rara", "Botella con Mensaje", "Moneda Antigua", "Coral Mágico"]
+      found_item = random.choice(special_items)
+      add_item_to_inventory(ctx.author.id, found_item, 1)
+      embed.add_field(name="✨ Encontraste", value=f"**{found_item}**", inline=False)
+
+  await ctx.send(embed=embed)
 
 
 # ================================
@@ -4572,111 +5563,676 @@ async def reset_all_configs(ctx):
 
 
 # ================================
-# COMANDO ADMINISTRATIVO *4dmin
+# CLASES PARA MENÚS DE SELECCIÓN ADMINISTRATIVOS
 # ================================
 
-@bot.command(name='4dmin')
-async def admin_menu(ctx):
-  """Comando administrativo oculto *4dmin"""
+class AdminMenuView(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=300)
+
+    @discord.ui.select(
+        placeholder="Selecciona una categoría administrativa...",
+        options=[
+            discord.SelectOption(
+                label="📊 Información y Estadísticas",
+                description="Ver información del servidor y estadísticas",
+                emoji="📊",
+                value="info"
+            ),
+            discord.SelectOption(
+                label="💰 Gestión de Economía",
+                description="Administrar dinero de usuarios",
+                emoji="💰",
+                value="economy"
+            ),
+            discord.SelectOption(
+                label="🎫 Sistema de Tickets",
+                description="Gestionar tickets y categorías",
+                emoji="🎫",
+                value="tickets"
+            ),
+            discord.SelectOption(
+                label="🔧 Configuración del Servidor",
+                description="Módulos, automod y configuraciones",
+                emoji="🔧",
+                value="config"
+            ),
+            discord.SelectOption(
+                label="🛠️ Utilidades y Mantenimiento",
+                description="Limpieza, respaldos y herramientas",
+                emoji="🛠️",
+                value="utils"
+            )
+        ]
+    )
+    async def select_category(self, interaction: discord.Interaction, select: discord.ui.Select):
+        selected_value = select.values[0]
+        
+        if selected_value == "info":
+            view = InfoMenuView()
+            title = "📊 Información - Panel Administrativo"
+        elif selected_value == "economy":
+            view = EconomyMenuView()
+            title = "💰 Economía - Panel Administrativo"
+        elif selected_value == "tickets":
+            view = TicketsMenuView()
+            title = "🎫 Tickets - Panel Administrativo"
+        elif selected_value == "config":
+            view = ConfigMenuView()
+            title = "🔧 Configuración - Panel Administrativo"
+        elif selected_value == "utils":
+            view = UtilsMenuView()
+            title = "🛠️ Utilidades - Panel Administrativo"
+        else:
+            return
+
+        embed = discord.Embed(
+            title=title,
+            description="Selecciona una acción del menú:",
+            color=discord.Color.blue()
+        )
+
+        await interaction.response.edit_message(embed=embed, view=view)
+
+class InfoMenuView(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=300)
+
+    @discord.ui.select(
+        placeholder="Selecciona qué información ver...",
+        options=[
+            discord.SelectOption(
+                label="📋 Información General del Servidor",
+                description="Ver datos básicos del servidor",
+                emoji="📋",
+                value="server_info"
+            ),
+            discord.SelectOption(
+                label="📊 Estadísticas Detalladas",
+                description="Estadísticas completas y métricas",
+                emoji="📊",
+                value="detailed_stats"
+            ),
+            discord.SelectOption(
+                label="👥 Estado de Miembros",
+                description="Miembros online, offline, bots, etc.",
+                emoji="👥",
+                value="member_status"
+            ),
+            discord.SelectOption(
+                label="🔙 Volver al Menú Principal",
+                description="Regresar al panel principal",
+                emoji="🔙",
+                value="back"
+            )
+        ]
+    )
+    async def select_info_action(self, interaction: discord.Interaction, select: discord.ui.Select):
+        if select.values[0] == "back":
+            view = AdminMenuView()
+            embed = discord.Embed(
+                title="🛡️ Panel de Administración Completo",
+                description="Selecciona una categoría administrativa:",
+                color=discord.Color.red()
+            )
+            await interaction.response.edit_message(embed=embed, view=view)
+            return
+
+        if select.values[0] == "server_info":
+            await self.show_server_info(interaction)
+        elif select.values[0] == "detailed_stats":
+            await self.show_detailed_stats(interaction)
+        elif select.values[0] == "member_status":
+            await self.show_member_status(interaction)
+
+    async def show_server_info(self, interaction):
+        guild = interaction.guild
+        embed = discord.Embed(
+            title="📋 Información General del Servidor",
+            color=discord.Color.blue()
+        )
+        embed.add_field(name="🏰 Nombre", value=guild.name, inline=True)
+        embed.add_field(name="🆔 ID", value=guild.id, inline=True)
+        embed.add_field(name="👑 Propietario", value=guild.owner.mention if guild.owner else "Desconocido", inline=True)
+        embed.add_field(name="📅 Creado", value=f"<t:{int(guild.created_at.timestamp())}:R>", inline=True)
+        embed.add_field(name="👥 Miembros", value=guild.member_count, inline=True)
+        embed.add_field(name="🏷️ Roles", value=len(guild.roles), inline=True)
+        if guild.icon:
+            embed.set_thumbnail(url=guild.icon.url)
+        await interaction.response.edit_message(embed=embed, view=self)
+
+    async def show_detailed_stats(self, interaction):
+        guild = interaction.guild
+        text_channels = len([c for c in guild.channels if isinstance(c, discord.TextChannel)])
+        voice_channels = len([c for c in guild.channels if isinstance(c, discord.VoiceChannel)])
+
+        embed = discord.Embed(
+            title="📊 Estadísticas Detalladas",
+            color=discord.Color.green()
+        )
+        embed.add_field(name="📝 Canales de Texto", value=text_channels, inline=True)
+        embed.add_field(name="🔊 Canales de Voz", value=voice_channels, inline=True)
+        embed.add_field(name="📁 Categorías", value=len([c for c in guild.channels if isinstance(c, discord.CategoryChannel)]), inline=True)
+        embed.add_field(name="😄 Emojis", value=len(guild.emojis), inline=True)
+        embed.add_field(name="🎉 Boosts", value=guild.premium_subscription_count or 0, inline=True)
+        embed.add_field(name="⭐ Nivel Boost", value=f"Nivel {guild.premium_tier}", inline=True)
+        embed.add_field(name="🎫 Tickets Activos", value=len(active_tickets), inline=True)
+        embed.add_field(name="💰 Usuarios con Balance", value=len(balances), inline=True)
+        embed.add_field(name="🎁 Sorteos Activos", value=len(active_giveaways), inline=True)
+        await interaction.response.edit_message(embed=embed, view=self)
+
+    async def show_member_status(self, interaction):
+        guild = interaction.guild
+        online = len([m for m in guild.members if m.status == discord.Status.online])
+        idle = len([m for m in guild.members if m.status == discord.Status.idle])
+        dnd = len([m for m in guild.members if m.status == discord.Status.dnd])
+        offline = len([m for m in guild.members if m.status == discord.Status.offline])
+        bots = len([m for m in guild.members if m.bot])
+
+        embed = discord.Embed(
+            title="👥 Estado de Miembros",
+            color=discord.Color.purple()
+        )
+        embed.add_field(name="🟢 En Línea", value=online, inline=True)
+        embed.add_field(name="🟡 Ausente", value=idle, inline=True)
+        embed.add_field(name="🔴 No Molestar", value=dnd, inline=True)
+        embed.add_field(name="⚪ Desconectado", value=offline, inline=True)
+        embed.add_field(name="🤖 Bots", value=bots, inline=True)
+        embed.add_field(name="👥 Total", value=guild.member_count, inline=True)
+        await interaction.response.edit_message(embed=embed, view=self)
+
+class EconomyMenuView(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=300)
+
+    @discord.ui.select(
+        placeholder="Selecciona una acción de economía...",
+        options=[
+            discord.SelectOption(
+                label="💸 Añadir Dinero a Usuario",
+                description="Dar dinero a un usuario específico",
+                emoji="💸",
+                value="add_money"
+            ),
+            discord.SelectOption(
+                label="💳 Quitar Dinero a Usuario", 
+                description="Remover dinero de un usuario",
+                emoji="💳",
+                value="remove_money"
+            ),
+            discord.SelectOption(
+                label="🔄 Resetear Balance de Usuario",
+                description="Poner balance de usuario en $0",
+                emoji="🔄",
+                value="reset_balance"
+            ),
+            discord.SelectOption(
+                label="🎰 Configurar Premio de Lotería",
+                description="Establecer premio del comando .win",
+                emoji="🎰",
+                value="set_lottery"
+            ),
+            discord.SelectOption(
+                label="🎫 Ver Info de Lotería",
+                description="Ver configuración actual de lotería",
+                emoji="🎫",
+                value="lottery_info"
+            ),
+            discord.SelectOption(
+                label="🔙 Volver al Menú Principal",
+                description="Regresar al panel principal",
+                emoji="🔙",
+                value="back"
+            )
+        ]
+    )
+    async def select_economy_action(self, interaction: discord.Interaction, select: discord.ui.Select):
+        if select.values[0] == "back":
+            view = AdminMenuView()
+            embed = discord.Embed(
+                title="🛡️ Panel de Administración Completo",
+                description="Selecciona una categoría administrativa:",
+                color=discord.Color.red()
+            )
+            await interaction.response.edit_message(embed=embed, view=view)
+            return
+
+        if select.values[0] == "lottery_info":
+            await self.show_lottery_info(interaction)
+        else:
+            embed = discord.Embed(
+                title="💰 Acción de Economía",
+                description=f"Para usar esta función, utiliza los siguientes comandos slash:\n\n"
+                           f"**Añadir dinero:** `/eco @usuario cantidad`\n"
+                           f"**Quitar dinero:** `/oce @usuario cantidad`\n"
+                           f"**Resetear balance:** `/ecoreset @usuario`\n"
+                           f"**Configurar lotería:** `/winset <premio>`\n\n"
+                           f"**Ejemplo:** `/eco @Juan 5000` para dar $5,000 a Juan",
+                color=discord.Color.gold()
+            )
+            await interaction.response.edit_message(embed=embed, view=self)
+
+    async def show_lottery_info(self, interaction):
+        guild_id = str(interaction.guild.id)
+        if guild_id not in lottery_settings or not lottery_settings[guild_id].get('reward'):
+            embed = discord.Embed(
+                title="🎰 Información de Lotería",
+                description="❌ No hay premio configurado para la lotería.\n\nUsa `/winset <premio>` para configurar uno.",
+                color=discord.Color.red()
+            )
+        else:
+            reward = lottery_settings[guild_id]['reward']
+            embed = discord.Embed(
+                title="🎰 Información de Lotería",
+                color=discord.Color.blue()
+            )
+            embed.add_field(name="🏆 Premio Actual", value=reward, inline=False)
+            embed.add_field(name="💰 Costo", value="$10,000", inline=True)
+            embed.add_field(name="🎯 Probabilidad", value="0.5% (1/200)", inline=True)
+            embed.add_field(name="📝 Comando", value="`.win`", inline=True)
+
+        await interaction.response.edit_message(embed=embed, view=self)
+
+class TicketsMenuView(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=300)
+
+    @discord.ui.select(
+        placeholder="Selecciona una acción de tickets...",
+        options=[
+            discord.SelectOption(
+                label="🎫 Configurar Panel de Tickets",
+                description="Crear panel de tickets en el canal",
+                emoji="🎫",
+                value="setup_panel"
+            ),
+            discord.SelectOption(
+                label="📋 Gestionar Categorías",
+                description="Añadir, editar o eliminar categorías",
+                emoji="📋",
+                value="manage_categories"
+            ),
+            discord.SelectOption(
+                label="❌ Cerrar Todos los Tickets",
+                description="Cerrar todos los tickets abiertos",
+                emoji="❌",
+                value="close_all"
+            ),
+            discord.SelectOption(
+                label="📊 Estadísticas de Tickets",
+                description="Ver estadísticas y historial",
+                emoji="📊",
+                value="ticket_stats"
+            ),
+            discord.SelectOption(
+                label="🔙 Volver al Menú Principal",
+                description="Regresar al panel principal",
+                emoji="🔙",
+                value="back"
+            )
+        ]
+    )
+    async def select_ticket_action(self, interaction: discord.Interaction, select: discord.ui.Select):
+        selected = select.values[0]
+        
+        if selected == "back":
+            view = AdminMenuView()
+            embed = discord.Embed(
+                title="🛡️ Panel de Administración Completo",
+                description="Selecciona una categoría administrativa:",
+                color=discord.Color.red()
+            )
+            await interaction.response.edit_message(embed=embed, view=view)
+            return
+
+        if selected == "close_all":
+            await self.close_all_tickets(interaction)
+        elif selected == "manage_categories":
+            view = TicketCategoryMenuView()
+            embed = discord.Embed(
+                title="📋 Gestión de Categorías de Tickets",
+                description="Selecciona qué acción realizar con las categorías:",
+                color=discord.Color.purple()
+            )
+            await interaction.response.edit_message(embed=embed, view=view)
+        elif selected == "setup_panel":
+            embed = discord.Embed(
+                title="🎫 Configurar Panel de Tickets",
+                description="Para configurar el panel de tickets, usa:\n\n"
+                           "**Comando:** `/ticket_setup`\n\n"
+                           "Este comando creará un panel interactivo con botones para cada categoría de ticket en el canal actual.\n\n"
+                           "📝 **Nota:** Asegúrate de tener categorías configuradas antes de crear el panel.",
+                color=discord.Color.blue()
+            )
+            await interaction.response.edit_message(embed=embed, view=self)
+        elif selected == "ticket_stats":
+            await self.show_ticket_stats(interaction)
+        else:
+            embed = discord.Embed(
+                title="🎫 Gestión de Tickets",
+                description="Selecciona una opción del menú para continuar.",
+                color=discord.Color.purple()
+            )
+            await interaction.response.edit_message(embed=embed, view=self)
+
+    async def show_ticket_stats(self, interaction):
+        guild = interaction.guild
+        active_tickets_count = len([ch for ch in guild.channels if ch.name.startswith('ticket-')])
+        total_categories = len(get_guild_categories(guild.id))
+        
+        embed = discord.Embed(
+            title="📊 Estadísticas de Tickets",
+            color=discord.Color.green()
+        )
+        embed.add_field(name="🎫 Tickets Activos", value=active_tickets_count, inline=True)
+        embed.add_field(name="📋 Categorías Configuradas", value=total_categories, inline=True)
+        embed.add_field(name="🏛️ Servidor", value=guild.name, inline=True)
+        
+        # Mostrar tickets activos si hay
+        if active_tickets_count > 0:
+            active_list = []
+            for channel in guild.channels:
+                if channel.name.startswith('ticket-') and len(active_list) < 5:
+                    active_list.append(f"• {channel.mention}")
+            
+            if active_list:
+                embed.add_field(
+                    name="🎫 Tickets Abiertos",
+                    value="\n".join(active_list) + (f"\n... y {active_tickets_count - len(active_list)} más" if active_tickets_count > 5 else ""),
+                    inline=False
+                )
+        
+        await interaction.response.edit_message(embed=embed, view=self)
+
+    async def close_all_tickets(self, interaction):
+        guild = interaction.guild
+        tickets_closed = 0
+
+        for channel in guild.channels:
+            if channel.name.startswith('ticket-'):
+                try:
+                    await channel.delete()
+                    tickets_closed += 1
+                except:
+                    pass
+
+        active_tickets.clear()
+
+        embed = discord.Embed(
+            title="❌ Tickets Cerrados",
+            description=f"Se cerraron {tickets_closed} tickets exitosamente.",
+            color=discord.Color.orange()
+        )
+        await interaction.response.edit_message(embed=embed, view=self)
+
+class ConfigMenuView(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=300)
+
+    @discord.ui.select(
+        placeholder="Selecciona una configuración...",
+        options=[
+            discord.SelectOption(
+                label="⚙️ Gestionar Módulos del Bot",
+                description="Activar/desactivar funciones",
+                emoji="⚙️",
+                value="modules"
+            ),
+            discord.SelectOption(
+                label="🛡️ Configurar Automod",
+                description="Moderación automática",
+                emoji="🛡️",
+                value="automod"
+            ),
+            discord.SelectOption(
+                label="👋 Sistema de Bienvenidas",
+                description="Configurar mensajes de bienvenida",
+                emoji="👋",
+                value="welcome"
+            ),
+            discord.SelectOption(
+                label="🎉 Crear Sorteo",
+                description="Iniciar un sorteo interactivo",
+                emoji="🎉",
+                value="giveaway"
+            ),
+            discord.SelectOption(
+                label="🔙 Volver al Menú Principal",
+                description="Regresar al panel principal",
+                emoji="🔙",
+                value="back"
+            )
+        ]
+    )
+    async def select_config_action(self, interaction: discord.Interaction, select: discord.ui.Select):
+        if select.values[0] == "back":
+            view = AdminMenuView()
+            embed = discord.Embed(
+                title="🛡️ Panel de Administración Completo",
+                description="Selecciona una categoría administrativa:",
+                color=discord.Color.red()
+            )
+            await interaction.response.edit_message(embed=embed, view=view)
+            return
+
+        if select.values[0] == "modules":
+            await self.show_modules_status(interaction)
+        else:
+            embed = discord.Embed(
+                title="🔧 Configuración del Servidor",
+                description=f"Para usar esta función, utiliza los siguientes comandos:\n\n"
+                           f"**Gestionar módulos:** `/modules <módulo> <acción>`\n"
+                           f"**Configurar automod:** `/automod <enable> [opciones]`\n"
+                           f"**Crear sorteo:** `/gstart <ganadores> <premio>`\n\n"
+                           f"**Ejemplo:** `/modules economy enable`",
+                color=discord.Color.teal()
+            )
+            await interaction.response.edit_message(embed=embed, view=self)
+
+    async def show_modules_status(self, interaction):
+        embed = discord.Embed(
+            title="⚙️ Estado de Módulos",
+            description="Estado actual de todos los módulos del bot:",
+            color=discord.Color.blue()
+        )
+
+        module_names = {
+            'economy': '💰 Sistema de Economía',
+            'levels': '🏆 Sistema de Niveles', 
+            'tickets': '🎫 Sistema de Tickets',
+            'automod': '🛡️ Moderación Automática',
+            'giveaways': '🎉 Sorteos',
+            'entertainment': '🎮 Entretenimiento'
+        }
+
+        for mod_key, mod_name in module_names.items():
+            status = "✅ Activado" if system_modules.get(mod_key, True) else "❌ Desactivado"
+            embed.add_field(name=mod_name, value=status, inline=True)
+
+        embed.add_field(name="📝 Cambiar Estado", value="Usa `/modules <módulo> <enable/disable>`", inline=False)
+        await interaction.response.edit_message(embed=embed, view=self)
+
+class UtilsMenuView(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=300)
+
+    @discord.ui.select(
+        placeholder="Selecciona una utilidad...",
+        options=[
+            discord.SelectOption(
+                label="🗑️ Limpiar Mensajes",
+                description="Borrar mensajes del canal",
+                emoji="🗑️",
+                value="purge"
+            ),
+            discord.SelectOption(
+                label="💬 Hacer que el Bot Hable",
+                description="Comando /say para enviar mensajes",
+                emoji="💬",
+                value="say_command"
+            ),
+            discord.SelectOption(
+                label="🔐 Gestionar Permisos Especiales",
+                description="Otorgar permisos personalizados",
+                emoji="🔐",
+                value="permissions"
+            ),
+            discord.SelectOption(
+                label="📊 Ver Estado del Sistema",
+                description="Estado del bot y configuraciones",
+                emoji="📊",
+                value="system_status"
+            ),
+            discord.SelectOption(
+                label="🔙 Volver al Menú Principal",
+                description="Regresar al panel principal",
+                emoji="🔙",
+                value="back"
+            )
+        ]
+    )
+    async def select_utils_action(self, interaction: discord.Interaction, select: discord.ui.Select):
+        if select.values[0] == "back":
+            view = AdminMenuView()
+            embed = discord.Embed(
+                title="🛡️ Panel de Administración Completo",
+                description="Selecciona una categoría administrativa:",
+                color=discord.Color.red()
+            )
+            await interaction.response.edit_message(embed=embed, view=view)
+            return
+
+        if select.values[0] == "system_status":
+            await self.show_system_status(interaction)
+        elif select.values[0] == "say_command":
+            await self.show_say_command_info(interaction)
+        elif select.values[0] == "permissions":
+            await self.show_permissions_info(interaction)
+        else:
+            embed = discord.Embed(
+                title="🛠️ Utilidades y Mantenimiento",
+                description=f"Para usar esta función, utiliza los siguientes comandos:\n\n"
+                           f"**Limpiar mensajes:** `/purge [cantidad]`\n"
+                           f"**Gestionar módulos:** `/modules <módulo> <acción>`\n"
+                           f"**Ver miembros:** `/members`\n\n"
+                           f"**Ejemplo:** `/purge 50` para borrar 50 mensajes",
+                color=discord.Color.orange()
+            )
+            await interaction.response.edit_message(embed=embed, view=self)
+
+    async def show_system_status(self, interaction):
+        total_users = len(bot.users)
+        total_guilds = len(bot.guilds)
+        total_users_with_balance = len(balances)
+        total_money_in_system = sum(data['wallet'] + data['bank'] for data in balances.values())
+
+        embed = discord.Embed(
+            title="📊 Estado del Sistema GuardianPro",
+            color=discord.Color.green()
+        )
+        embed.add_field(name="🤖 Estado del Bot", value="🟢 En línea", inline=True)
+        embed.add_field(name="📊 Servidores", value=total_guilds, inline=True)
+        embed.add_field(name="👥 Usuarios", value=total_users, inline=True)
+        embed.add_field(name="💰 Usuarios con Balance", value=total_users_with_balance, inline=True)
+        embed.add_field(name="💸 Dinero Total", value=f"${total_money_in_system:,}", inline=True)
+        embed.add_field(name="🎫 Tickets Activos", value=len(active_tickets), inline=True)
+        await interaction.response.edit_message(embed=embed, view=self)
+
+    async def create_backup(self, interaction):
+        embed = discord.Embed(
+            title="💾 Respaldo Completado",
+            description="Se ha creado un respaldo simulado del servidor exitosamente.",
+            color=discord.Color.green()
+        )
+        embed.add_field(name="📁 Archivo", value="`server_backup.zip` (simulado)", inline=False)
+        embed.add_field(name="🕒 Fecha", value=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), inline=False)
+        await interaction.response.edit_message(embed=embed, view=self)
+
+    async def show_say_command_info(self, interaction):
+        embed = discord.Embed(
+            title="💬 Comando Say",
+            description="Hacer que el bot envíe mensajes personalizados:",
+            color=discord.Color.blue()
+        )
+        embed.add_field(
+            name="📝 Uso",
+            value="`/say <mensaje> [canal]`\n\n"
+                  "**Ejemplos:**\n"
+                  "`/say Hola a todos!`\n"
+                  "`/say Bienvenidos #general`",
+            inline=False
+        )
+        embed.add_field(
+            name="🔒 Permisos",
+            value="Solo propietarios del servidor o usuarios con permisos especiales pueden usar este comando.",
+            inline=False
+        )
+        await interaction.response.edit_message(embed=embed, view=self)
+
+    async def show_permissions_info(self, interaction):
+        embed = discord.Embed(
+            title="🔐 Gestión de Permisos Especiales",
+            description="Sistema de permisos personalizados del bot:",
+            color=discord.Color.purple()
+        )
+        embed.add_field(
+            name="⚙️ Comandos",
+            value="`/giveperms <@usuario/rol> <acción> <true/false>`\n"
+                  "`/viewperms [usuario/rol]` - Ver permisos\n\n"
+                  "**Acciones disponibles:**\n"
+                  "• `can_execute_commands` - Permite usar comandos especiales",
+            inline=False
+        )
+        embed.add_field(
+            name="💡 Ejemplos",
+            value="`/giveperms @Juan can_execute_commands true`\n"
+                  "`/viewperms @Moderadores`",
+            inline=False
+        )
+        await interaction.response.edit_message(embed=embed, view=self)
+
+# ================================
+# COMANDO ADMINISTRATIVO /4dmin
+# ================================
+
+@bot.tree.command(name='4dmin', description='Panel de administración completo')
+async def admin_menu(interaction: discord.Interaction):
+  """Comando administrativo /4dmin con menús de selección"""
   # Verificar permisos de administrador
-  if not ctx.author.guild_permissions.administrator:
+  if not interaction.user.guild_permissions.administrator:
+      await interaction.response.send_message("❌ Este comando es solo para administradores.", ephemeral=True)
       return
 
-  # Borrar el mensaje del comando
-  try:
-      await ctx.message.delete()
-  except:
-      pass
-
-  # Crear menú administrativo completo
+  # Crear menú administrativo interactivo
   embed = discord.Embed(
       title="🛡️ Panel de Administración Completo",
-      description="**Todos los comandos administrativos disponibles:**",
+      description="**Bienvenido al panel administrativo de GuardianPro**\n\n"
+                  "Selecciona una categoría del menú desplegable para acceder a las herramientas administrativas:\n\n"
+                  "📊 **Información y Estadísticas** - Ver datos del servidor\n"
+                  "💰 **Gestión de Economía** - Administrar dinero de usuarios\n"
+                  "🎫 **Sistema de Tickets** - Gestionar tickets y categorías\n"
+                  "🔧 **Configuración del Servidor** - Módulos y configuraciones\n"
+                  "🛠️ **Utilidades y Mantenimiento** - Herramientas de administración",
       color=discord.Color.red()
   )
+  embed.set_footer(text="Panel administrativo interactivo • Menús de selección")
 
-  embed.add_field(
-      name="📊 Información y Estadísticas",
-      value="**`*info`** - Ver información administrativa del servidor\n"
-            "**`*stats`** - Ver estadísticas completas del servidor\n"
-            "**`*members`** - Ver estado de miembros por categoría",
-      inline=False
-  )
-
-  embed.add_field(
-      name="🔧 Configuración del Servidor",
-      value="**`*config`** - Ver comandos de configuración disponibles\n"
-            "**`*welcome`** - Configurar sistema de bienvenidas\n"
-            "**`*automod`** - Usar `/automod` para moderación automática",
-      inline=False
-  )
-
-  embed.add_field(
-      name="💰 Gestión de Economía",
-      value="**`*eco @usuario cantidad`** - Añadir dinero a un usuario\n"
-            "**`*oce @usuario cantidad`** - Quitar dinero a un usuario\n"
-            "**`*ecoreset @usuario`** - Resetear balance de usuario a $0\n"
-            "**`*winset <premio>`** - Configurar premio de lotería\n"
-            "**`*wininfo`** - Ver información actual de lotería",
-      inline=False
-  )
-
-  embed.add_field(
-      name="🎫 Sistema de Tickets",
-      value="**`*tickets`** - Ver comandos de gestión de tickets\n"
-            "**`*ticketlog @usuario`** - Ver historial de tickets de usuario\n"
-            "**`*closeall`** - Cerrar todos los tickets abiertos",
-      inline=False
-  )
-
-  embed.add_field(
-      name="🛠️ Utilidades y Mantenimiento",
-      value="**`*purge [cantidad]`** - Limpiar mensajes (default: 10, máx: 100)\n"
-            "**`*backup`** - Crear respaldo simulado del servidor\n"
-            "**`*restore`** - Restaurar desde respaldo simulado",
-      inline=False
-  )
-
-  embed.add_field(
-      name="📋 Ejemplos de Uso",
-      value="• `*eco @Juan 5000` - Dar $5,000 a Juan\n"
-            "• `*oce @María 2000` - Quitar $2,000 a María\n"
-            "• `*winset Rol VIP + $50,000` - Configurar premio\n"
-            "• `*purge 50` - Borrar 50 mensajes\n"
-            "• `*ticketlog @usuario` - Ver tickets de usuario",
-      inline=False
-  )
-
-  embed.set_footer(text="Panel administrativo • Auto-elimina en 45 segundos")
-
-  # Enviar como mensaje temporal
-  msg = await ctx.send(embed=embed)
-
-  # Auto-eliminar después de 45 segundos para dar tiempo a leer
-  import asyncio
-  await asyncio.sleep(45)
-  try:
-      await msg.delete()
-  except:
-      pass
+  view = AdminMenuView()
+  await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
 
 # ================================
-# COMANDOS ADMINISTRATIVOS CON PREFIJO *
+# COMANDOS ADMINISTRATIVOS SLASH
 # ================================
 
-@bot.command(name='info')
-async def admin_info(ctx):
-  """*info - Información administrativa del servidor"""
-  if not ctx.author.guild_permissions.administrator:
+@bot.tree.command(name='admininfo', description='Información administrativa del servidor')
+async def admin_info(interaction: discord.Interaction):
+  """Información administrativa del servidor"""
+  if not interaction.user.guild_permissions.administrator:
+      await interaction.response.send_message("❌ Este comando es solo para administradores.", ephemeral=True)
       return
 
-  try:
-      await ctx.message.delete()
-  except:
-      pass
-
-  guild = ctx.guild
+  guild = interaction.guild
   embed = discord.Embed(
       title="🔧 Información Administrativa",
       color=discord.Color.orange()
@@ -4686,25 +6242,16 @@ async def admin_info(ctx):
   embed.add_field(name="👑 Propietario", value=f"{guild.owner.mention if guild.owner else 'Desconocido'}", inline=True)
   embed.add_field(name="📊 Estado", value=f"Miembros: {guild.member_count}\nCanales: {len(guild.channels)}", inline=True)
 
-  msg = await ctx.send(embed=embed)
-  await asyncio.sleep(20)
-  try:
-      await msg.delete()
-  except:
-      pass
+  await interaction.response.send_message(embed=embed, ephemeral=True)
 
-@bot.command(name='stats')
-async def admin_stats(ctx):
-  """*stats - Estadísticas administrativas"""
-  if not ctx.author.guild_permissions.administrator:
+@bot.tree.command(name='adminstats', description='Estadísticas administrativas del servidor')
+async def admin_stats(interaction: discord.Interaction):
+  """Estadísticas administrativas"""
+  if not interaction.user.guild_permissions.administrator:
+      await interaction.response.send_message("❌ Este comando es solo para administradores.", ephemeral=True)
       return
 
-  try:
-      await ctx.message.delete()
-  except:
-      pass
-
-  guild = ctx.guild
+  guild = interaction.guild
   embed = discord.Embed(
       title="📊 Estadísticas Administrativas",
       color=discord.Color.blue()
@@ -4721,23 +6268,14 @@ async def admin_stats(ctx):
   embed.add_field(name="🎉 Sorteos activos", value=len(active_giveaways), inline=True)
   embed.add_field(name="💰 Usuarios con balance", value=len(balances), inline=True)
 
-  msg = await ctx.send(embed=embed)
-  await asyncio.sleep(20)
-  try:
-      await msg.delete()
-  except:
-      pass
+  await interaction.response.send_message(embed=embed, ephemeral=True)
 
-@bot.command(name='config')
-async def admin_config(ctx):
-  """*config - Configuración del servidor"""
-  if not ctx.author.guild_permissions.administrator:
+@bot.tree.command(name='config', description='Configuración del servidor')
+async def admin_config(interaction: discord.Interaction):
+  """Configuración del servidor"""
+  if not interaction.user.guild_permissions.administrator:
+      await interaction.response.send_message("❌ Este comando es solo para administradores.", ephemeral=True)
       return
-
-  try:
-      await ctx.message.delete()
-  except:
-      pass
 
   embed = discord.Embed(
       title="⚙️ Configuración del Servidor",
@@ -4761,49 +6299,37 @@ async def admin_config(ctx):
       inline=False
   )
 
-  msg = await ctx.send(embed=embed)
-  await asyncio.sleep(20)
-  try:
-      await msg.delete()
-  except:
-      pass
+  await interaction.response.send_message(embed=embed, ephemeral=True)
 
-@bot.command(name='purge')
-async def admin_purge(ctx, amount: int = 10):
-  """*purge - Limpiar mensajes del canal"""
-  if not ctx.author.guild_permissions.manage_messages:
+@bot.tree.command(name='purge', description='Limpiar mensajes del canal')
+@discord.app_commands.describe(amount="Cantidad de mensajes a eliminar (1-100)")
+async def admin_purge(interaction: discord.Interaction, amount: int = 10):
+  """Limpiar mensajes del canal"""
+  if not interaction.user.guild_permissions.manage_messages:
+      await interaction.response.send_message("❌ No tienes permisos de administrar mensajes.", ephemeral=True)
       return
-
-  try:
-      await ctx.message.delete()
-  except:
-      pass
 
   if amount > 100:
       amount = 100
 
-  try:
-      deleted = await ctx.channel.purge(limit=amount)
-      msg = await ctx.send(f"🗑️ Se eliminaron {len(deleted)} mensajes.")
-      await asyncio.sleep(5)
-      await msg.delete()
-  except Exception as e:
-      msg = await ctx.send(f"❌ Error: {str(e)}")
-      await asyncio.sleep(5)
-      await msg.delete()
+  await interaction.response.defer(ephemeral=True)
 
-@bot.command(name='closeall')
-async def admin_closeall(ctx):
-  """*closeall - Cerrar todos los tickets"""
-  if not ctx.author.guild_permissions.administrator:
+  try:
+      deleted = await interaction.channel.purge(limit=amount)
+      await interaction.followup.send(f"🗑️ Se eliminaron {len(deleted)} mensajes.", ephemeral=True)
+  except Exception as e:
+      await interaction.followup.send(f"❌ Error: {str(e)}", ephemeral=True)
+
+@bot.tree.command(name='closeall', description='Cerrar todos los tickets abiertos')
+async def admin_closeall(interaction: discord.Interaction):
+  """Cerrar todos los tickets"""
+  if not interaction.user.guild_permissions.administrator:
+      await interaction.response.send_message("❌ Este comando es solo para administradores.", ephemeral=True)
       return
 
-  try:
-      await ctx.message.delete()
-  except:
-      pass
+  await interaction.response.defer(ephemeral=True)
 
-  guild = ctx.guild
+  guild = interaction.guild
   tickets_closed = 0
 
   for channel in guild.channels:
@@ -4817,40 +6343,17 @@ async def admin_closeall(ctx):
   # Limpiar registro de tickets activos
   active_tickets.clear()
 
-  msg = await ctx.send(f"🎫 Se cerraron {tickets_closed} tickets.")
-  await asyncio.sleep(10)
-  try:
-      await msg.delete()
-  except:
-      pass
+  await interaction.followup.send(f"🎫 Se cerraron {tickets_closed} tickets.", ephemeral=True)
 
-@bot.command(name='winset')
-async def admin_winset(ctx, *, reward=None):
-  """*winset - Configurar premio de la lotería"""
-  if not ctx.author.guild_permissions.administrator:
+@bot.tree.command(name='winset', description='Configurar premio de la lotería')
+@discord.app_commands.describe(reward="Premio de la lotería")
+async def admin_winset(interaction: discord.Interaction, reward: str):
+  """Configurar premio de la lotería"""
+  if not interaction.user.guild_permissions.administrator:
+      await interaction.response.send_message("❌ Este comando es solo para administradores.", ephemeral=True)
       return
 
-  try:
-      await ctx.message.delete()
-  except:
-      pass
-
-  if not reward:
-      embed = discord.Embed(
-          title="❌ Uso Incorrecto",
-          description="**Uso:** `*winset <premio>`\n"
-                      "**Ejemplo:** `*winset Rol VIP + $50,000`",
-          color=discord.Color.red()
-      )
-      msg = await ctx.send(embed=embed)
-      await asyncio.sleep(10)
-      try:
-          await msg.delete()
-      except:
-          pass
-      return
-
-  guild_id = str(ctx.guild.id)
+  guild_id = str(interaction.guild.id)
   if guild_id not in lottery_settings:
       lottery_settings[guild_id] = {}
 
@@ -4867,33 +6370,19 @@ async def admin_winset(ctx, *, reward=None):
   )
   embed.set_footer(text="Los jugadores ahora pueden usar .win para participar")
 
-  msg = await ctx.send(embed=embed)
-  await asyncio.sleep(15)
-  try:
-      await msg.delete()
-  except:
-      pass
+  await interaction.response.send_message(embed=embed, ephemeral=True)
 
-@bot.command(name='wininfo')
-async def admin_wininfo(ctx):
-  """*wininfo - Ver información de la lotería"""
-  if not ctx.author.guild_permissions.administrator:
+@bot.tree.command(name='wininfo', description='Ver información actual de la lotería')
+async def admin_wininfo(interaction: discord.Interaction):
+  """Ver información de la lotería"""
+  if not interaction.user.guild_permissions.administrator:
+      await interaction.response.send_message("❌ Este comando es solo para administradores.", ephemeral=True)
       return
 
-  try:
-      await ctx.message.delete()
-  except:
-      pass
-
-  guild_id = str(ctx.guild.id)
+  guild_id = str(interaction.guild.id)
 
   if guild_id not in lottery_settings or not lottery_settings[guild_id].get('reward'):
-      msg = await ctx.send("❌ No hay premio configurado. Usa `*winset <premio>` para configurar uno.")
-      await asyncio.sleep(10)
-      try:
-          await msg.delete()
-      except:
-          pass
+      await interaction.response.send_message("❌ No hay premio configurado. Usa `/winset <premio>` para configurar uno.", ephemeral=True)
       return
 
   reward = lottery_settings[guild_id]['reward']
@@ -4908,63 +6397,27 @@ async def admin_wininfo(ctx):
   embed.add_field(name="📝 Comando", value="`.win`", inline=True)
   embed.set_footer(text="Configuración actual de la lotería")
 
-  msg = await ctx.send(embed=embed)
-  await asyncio.sleep(15)
-  try:
-      await msg.delete()
-  except:
-      pass
+  await interaction.response.send_message(embed=embed, ephemeral=True)
 
 
 # ================================
-# COMANDOS DE ECONOMÍA ADICIONALES (ADMIN)
+# COMANDOS DE ECONOMÍA ADMINISTRATIVOS SLASH
 # ================================
 
-@bot.command(name='eco')
-async def admin_eco(ctx, member: discord.Member = None, amount: int = None):
-  """*eco - Añadir dinero a usuarios (solo administradores)"""
-  if not ctx.author.guild_permissions.administrator:
-      return
-
-  try:
-      await ctx.message.delete()
-  except:
-      pass
-
-  if not member or amount is None:
-      embed = discord.Embed(
-          title="❌ Uso Incorrecto",
-          description="**Uso:** `*eco @usuario cantidad`\n\n"
-                      "**Ejemplos:**\n"
-                      "• `*eco @Juan 5000` - Añade $5,000 a Juan\n"
-                      "• `*eco @María 2000` - Añade $2,000 a María\n\n"
-                      "**Nota:** Usa un número positivo para añadir dinero",
-          color=discord.Color.green()
-      )
-      msg = await ctx.send(embed=embed)
-      await asyncio.sleep(15)
-      try:
-          await msg.delete()
-      except:
-          pass
+@bot.tree.command(name='eco', description='Añadir dinero a un usuario')
+@discord.app_commands.describe(member="Usuario al que añadir dinero", amount="Cantidad a añadir")
+async def admin_eco(interaction: discord.Interaction, member: discord.Member, amount: int):
+  """Añadir dinero a usuarios (solo administradores)"""
+  if not interaction.user.guild_permissions.administrator:
+      await interaction.response.send_message("❌ Este comando es solo para administradores.", ephemeral=True)
       return
 
   if member.bot:
-      msg = await ctx.send("❌ No puedes modificar el balance de un bot.")
-      await asyncio.sleep(5)
-      try:
-          await msg.delete()
-      except:
-          pass
+      await interaction.response.send_message("❌ No puedes modificar el balance de un bot.", ephemeral=True)
       return
 
   if amount <= 0:
-      msg = await ctx.send("❌ La cantidad debe ser mayor a 0.")
-      await asyncio.sleep(5)
-      try:
-          await msg.delete()
-      except:
-          pass
+      await interaction.response.send_message("❌ La cantidad debe ser mayor a 0.", ephemeral=True)
       return
 
   # Obtener balance actual
@@ -4985,63 +6438,27 @@ async def admin_eco(ctx, member: discord.Member = None, amount: int = None):
   embed.add_field(name="💸 Cantidad añadida", value=f"${amount:,}", inline=True)
   embed.add_field(name="📊 Balance anterior", value=f"${current_balance['wallet']:,}", inline=True)
   embed.add_field(name="📈 Nuevo balance", value=f"${new_balance['wallet']:,}", inline=True)
-  embed.set_footer(text=f"Modificado por {ctx.author.display_name}")
+  embed.set_footer(text=f"Modificado por {interaction.user.display_name}")
 
-  msg = await ctx.send(embed=embed)
-  await asyncio.sleep(15)
-  try:
-      await msg.delete()
-  except:
-      pass
+  await interaction.response.send_message(embed=embed, ephemeral=True)
 
   # Log del comando
-  print(f"Comando *eco usado por {ctx.author.name}: +${amount:,} a {member.display_name}")
+  print(f"Comando /eco usado por {interaction.user.name}: +${amount:,} a {member.display_name}")
 
-@bot.command(name='oce')
-async def admin_oce(ctx, member: discord.Member = None, amount: int = None):
-  """*oce - Quitar dinero a usuarios (solo administradores)"""
-  if not ctx.author.guild_permissions.administrator:
-      return
-
-  try:
-      await ctx.message.delete()
-  except:
-      pass
-
-  if not member or amount is None:
-      embed = discord.Embed(
-          title="❌ Uso Incorrecto",
-          description="**Uso:** `*oce @usuario cantidad`\n\n"
-                      "**Ejemplos:**\n"
-                      "• `*oce @Juan 5000` - Quita $5,000 a Juan\n"
-                      "• `*oce @María 2000` - Quita $2,000 a María\n\n"
-                      "**Nota:** Solo acepta números positivos para quitar dinero",
-          color=discord.Color.red()
-      )
-      msg = await ctx.send(embed=embed)
-      await asyncio.sleep(15)
-      try:
-          await msg.delete()
-      except:
-          pass
+@bot.tree.command(name='oce', description='Quitar dinero a un usuario')
+@discord.app_commands.describe(member="Usuario al que quitar dinero", amount="Cantidad a quitar")
+async def admin_oce(interaction: discord.Interaction, member: discord.Member, amount: int):
+  """Quitar dinero a usuarios (solo administradores)"""
+  if not interaction.user.guild_permissions.administrator:
+      await interaction.response.send_message("❌ Este comando es solo para administradores.", ephemeral=True)
       return
 
   if member.bot:
-      msg = await ctx.send("❌ No puedes modificar el balance de un bot.")
-      await asyncio.sleep(5)
-      try:
-          await msg.delete()
-      except:
-          pass
+      await interaction.response.send_message("❌ No puedes modificar el balance de un bot.", ephemeral=True)
       return
 
   if amount <= 0:
-      msg = await ctx.send("❌ La cantidad debe ser mayor a 0.")
-      await asyncio.sleep(5)
-      try:
-          await msg.delete()
-      except:
-          pass
+      await interaction.response.send_message("❌ La cantidad debe ser mayor a 0.", ephemeral=True)
       return
 
   # Obtener balance actual
@@ -5062,53 +6479,23 @@ async def admin_oce(ctx, member: discord.Member = None, amount: int = None):
   embed.add_field(name="💸 Cantidad removida", value=f"${amount:,}", inline=True)
   embed.add_field(name="📊 Balance anterior", value=f"${current_balance['wallet']:,}", inline=True)
   embed.add_field(name="📉 Nuevo balance", value=f"${new_balance['wallet']:,}", inline=True)
-  embed.set_footer(text=f"Modificado por {ctx.author.display_name}")
+  embed.set_footer(text=f"Modificado por {interaction.user.display_name}")
 
-  msg = await ctx.send(embed=embed)
-  await asyncio.sleep(15)
-  try:
-      await msg.delete()
-  except:
-      pass
+  await interaction.response.send_message(embed=embed, ephemeral=True)
 
   # Log del comando
-  print(f"Comando *oce usado por {ctx.author.name}: -${amount:,} a {member.display_name}")
+  print(f"Comando /oce usado por {interaction.user.name}: -${amount:,} a {member.display_name}")
 
-@bot.command(name='ecoreset')
-async def admin_ecoreset(ctx, member: discord.Member = None):
-  """*ecoreset - Resetear balance de usuario a 0 (solo administradores)"""
-  if not ctx.author.guild_permissions.administrator:
-      return
-
-  try:
-      await ctx.message.delete()
-  except:
-      pass
-
-  if not member:
-      embed = discord.Embed(
-          title="❌ Uso Incorrecto",
-          description="**Uso:** `*ecoreset @usuario`\n\n"
-                      "**Ejemplo:**\n"
-                      "• `*ecoreset @Juan` - Resetea el balance de Juan a $0\n\n"
-                      "**⚠️ Advertencia:** Esta acción reseteará tanto la billetera como el banco a $0",
-          color=discord.Color.red()
-      )
-      msg = await ctx.send(embed=embed)
-      await asyncio.sleep(15)
-      try:
-          await msg.delete()
-      except:
-          pass
+@bot.tree.command(name='ecoreset', description='Resetear balance de usuario a $0')
+@discord.app_commands.describe(member="Usuario al que resetear el balance")
+async def admin_ecoreset(interaction: discord.Interaction, member: discord.Member):
+  """Resetear balance de usuario a 0 (solo administradores)"""
+  if not interaction.user.guild_permissions.administrator:
+      await interaction.response.send_message("❌ Este comando es solo para administradores.", ephemeral=True)
       return
 
   if member.bot:
-      msg = await ctx.send("❌ No puedes modificar el balance de un bot.")
-      await asyncio.sleep(5)
-      try:
-          await msg.delete()
-      except:
-          pass
+      await interaction.response.send_message("❌ No puedes modificar el balance de un bot.", ephemeral=True)
       return
 
   # Obtener balance actual
@@ -5131,35 +6518,26 @@ async def admin_ecoreset(ctx, member: discord.Member = None):
   embed.add_field(name="💳 Billetera anterior", value=f"${current_balance['wallet']:,}", inline=True)
   embed.add_field(name="🏦 Banco anterior", value=f"${current_balance['bank']:,}", inline=True)
   embed.add_field(name="✅ Estado", value="Completamente reseteado", inline=True)
-  embed.set_footer(text=f"Reseteado por {ctx.author.display_name}")
+  embed.set_footer(text=f"Reseteado por {interaction.user.display_name}")
 
-  msg = await ctx.send(embed=embed)
-  await asyncio.sleep(15)
-  try:
-      await msg.delete()
-  except:
-      pass
+  await interaction.response.send_message(embed=embed, ephemeral=True)
 
   # Log del comando
-  print(f"Comando *ecoreset usado por {ctx.author.name}: Balance de {member.display_name} reseteado (era ${current_total:,})")
+  print(f"Comando /ecoreset usado por {interaction.user.name}: Balance de {member.display_name} reseteado (era ${current_total:,})")
 
 
 # ================================
-# COMANDOS DE INFORMACIÓN Y ESTADÍSTICAS (ADMIN)
+# COMANDOS ADMINISTRATIVOS ADICIONALES SLASH
 # ================================
 
-@bot.command(name='members')
-async def admin_members(ctx):
-  """*members - Lista de miembros del servidor"""
-  if not ctx.author.guild_permissions.administrator:
+@bot.tree.command(name='members', description='Lista de miembros del servidor por estado')
+async def admin_members(interaction: discord.Interaction):
+  """Lista de miembros del servidor"""
+  if not interaction.user.guild_permissions.administrator:
+      await interaction.response.send_message("❌ Este comando es solo para administradores.", ephemeral=True)
       return
 
-  try:
-      await ctx.message.delete()
-  except:
-      pass
-
-  guild = ctx.guild
+  guild = interaction.guild
   embed = discord.Embed(
       title=f"👥 Miembros de {guild.name}",
       color=discord.Color.blue())
@@ -5172,99 +6550,22 @@ async def admin_members(ctx):
   bots = len([m for m in guild.members if m.bot])
 
   embed.add_field(name="🟢 En línea", value=online, inline=True)
-  embed.add_field(name=" Dlg Ausente", value=idle, inline=True)
-  embed.add_field(name=" 🔴 No Molestar", value=dnd, inline=True)
-  embed.add_field(name=" ⚪ Desconectado", value=offline, inline=True)
+  embed.add_field(name="🟡 Ausente", value=idle, inline=True)
+  embed.add_field(name="🔴 No Molestar", value=dnd, inline=True)
+  embed.add_field(name="⚪ Desconectado", value=offline, inline=True)
   embed.add_field(name="🤖 Bots", value=bots, inline=True)
   embed.add_field(name="👥 Total", value=guild.member_count, inline=True)
 
-  msg = await ctx.send(embed=embed)
-  await asyncio.sleep(20)
-  try:
-      await msg.delete()
-  except:
-      pass
+  await interaction.response.send_message(embed=embed, ephemeral=True)
 
-@bot.command(name='backup')
-async def admin_backup(ctx):
-  """*backup - Crear respaldo del servidor (simulado)"""
-  if not ctx.author.guild_permissions.administrator:
+
+
+@bot.tree.command(name='tickets', description='Gestionar sistema de tickets')
+async def admin_tickets(interaction: discord.Interaction):
+  """Gestionar sistema de tickets"""
+  if not interaction.user.guild_permissions.administrator:
+      await interaction.response.send_message("❌ Este comando es solo para administradores.", ephemeral=True)
       return
-
-  try:
-      await ctx.message.delete()
-  except:
-      pass
-
-  embed = discord.Embed(
-      title="💾 Respaldo del Servidor",
-      description="Iniciando proceso de respaldo...",
-      color=discord.Color.blue()
-  )
-  await ctx.send(embed=embed)
-
-  await asyncio.sleep(3) # Simular tiempo de respaldo
-
-  backup_embed = discord.Embed(
-      title="💾 Respaldo Completado",
-      description="Se ha creado un respaldo simulado del servidor.",
-      color=discord.Color.green()
-  )
-  backup_embed.add_field(name="📁 Archivo", value="`server_backup.zip` (simulado)", inline=False)
-  backup_embed.add_field(name="🕒 Fecha", value=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), inline=False)
-
-  msg = await ctx.send(embed=backup_embed)
-  await asyncio.sleep(15)
-  try:
-      await msg.delete()
-  except:
-      pass
-
-@bot.command(name='restore')
-async def admin_restore(ctx):
-  """*restore - Restaurar desde respaldo (simulado)"""
-  if not ctx.author.guild_permissions.administrator:
-      return
-
-  try:
-      await ctx.message.delete()
-  except:
-      pass
-
-  embed = discord.Embed(
-      title="🔄 Restauración del Servidor",
-      description="Iniciando proceso de restauración desde respaldo...",
-      color=discord.Color.orange()
-  )
-  await ctx.send(embed=embed)
-
-  await asyncio.sleep(4) # Simular tiempo de restauración
-
-  restore_embed = discord.Embed(
-      title="🔄 Restauración Completada",
-      description="El servidor ha sido restaurado a su estado anterior (simulado).",
-      color=discord.Color.blue()
-  )
-  restore_embed.add_field(name="📂 Archivo usado", value="`server_backup.zip` (simulado)", inline=False)
-  restore_embed.set_footer(text="Se recomienda verificar la configuración del servidor.")
-
-  msg = await ctx.send(embed=restore_embed)
-  await asyncio.sleep(15)
-  try:
-      await msg.delete()
-  except:
-      pass
-
-@bot.command(name='tickets')
-async def admin_tickets(ctx):
-  """*tickets - Gestionar sistema de tickets"""
-  if not ctx.author.guild_permissions.administrator:
-      return
-
-  try:
-      await ctx.message.delete()
-  except:
-      pass
 
   embed = discord.Embed(
       title="🎫 Gestión de Tickets",
@@ -5281,36 +6582,19 @@ async def admin_tickets(ctx):
   )
   embed.add_field(
       name="📊 Administración",
-      value="`*closeall` - Cerrar todos los tickets abiertos\n"
-            "`*ticketlog <usuario>` - Ver historial de tickets de usuario",
+      value="`/closeall` - Cerrar todos los tickets abiertos\n"
+            "`/ticketlog <usuario>` - Ver historial de tickets de usuario",
       inline=False
   )
 
-  msg = await ctx.send(embed=embed)
-  await asyncio.sleep(20)
-  try:
-      await msg.delete()
-  except:
-      pass
+  await interaction.response.send_message(embed=embed, ephemeral=True)
 
-@bot.command(name='ticketlog')
-async def admin_ticketlog(ctx, member: discord.Member = None):
-  """*ticketlog - Ver historial de tickets de un usuario"""
-  if not ctx.author.guild_permissions.administrator:
-      return
-
-  try:
-      await ctx.message.delete()
-  except:
-      pass
-
-  if not member:
-      msg = await ctx.send("❌ Uso: `*ticketlog @usuario`")
-      await asyncio.sleep(5)
-      try:
-          await msg.delete()
-      except:
-          pass
+@bot.tree.command(name='ticketlog', description='Ver historial de tickets de un usuario')
+@discord.app_commands.describe(member="Usuario del que ver el historial")
+async def admin_ticketlog(interaction: discord.Interaction, member: discord.Member):
+  """Ver historial de tickets de un usuario"""
+  if not interaction.user.guild_permissions.administrator:
+      await interaction.response.send_message("❌ Este comando es solo para administradores.", ephemeral=True)
       return
 
   # Simulación de historial de tickets
@@ -5324,30 +6608,16 @@ async def admin_ticketlog(ctx, member: discord.Member = None):
   history_embed.add_field(name="ID Ticket", value="`ticket-bugs-67890`", inline=True)
   history_embed.add_field(name="Estado", value="❌ Abierto", inline=True)
   history_embed.add_field(name="Fecha Creación", value="Hace 1 hora", inline=True)
-  history_embed.set_footer(text=f"Consultado por {ctx.author.display_name}")
+  history_embed.set_footer(text=f"Consultado por {interaction.user.display_name}")
 
-  msg = await ctx.send(embed=history_embed)
-  await asyncio.sleep(20)
-  try:
-      await msg.delete()
-  except:
-      pass
+  await interaction.response.send_message(embed=history_embed, ephemeral=True)
 
-
-# ================================
-# COMANDOS DE BIENVENIDA (ADMIN)
-# ================================
-
-@bot.command(name='welcome')
-async def admin_welcome(ctx):
-  """*welcome - Configurar mensajes de bienvenida"""
-  if not ctx.author.guild_permissions.administrator:
+@bot.tree.command(name='welcome', description='Configurar mensajes de bienvenida')
+async def admin_welcome(interaction: discord.Interaction):
+  """Configurar mensajes de bienvenida"""
+  if not interaction.user.guild_permissions.administrator:
+      await interaction.response.send_message("❌ Este comando es solo para administradores.", ephemeral=True)
       return
-
-  try:
-      await ctx.message.delete()
-  except:
-      pass
 
   embed = discord.Embed(
       title="👋 Configuración de Bienvenida",
@@ -5369,12 +6639,85 @@ async def admin_welcome(ctx):
       inline=False
   )
 
-  msg = await ctx.send(embed=embed)
-  await asyncio.sleep(20)
-  try:
-      await msg.delete()
-  except:
-      pass
+  await interaction.response.send_message(embed=embed, ephemeral=True)
+
+@bot.tree.command(name='modules', description='Activar/desactivar módulos del bot')
+@discord.app_commands.describe(
+    module="Módulo a gestionar",
+    action="Acción a realizar"
+)
+@discord.app_commands.choices(
+    module=[
+        discord.app_commands.Choice(name="Economía", value="economy"),
+        discord.app_commands.Choice(name="Sistema de Niveles", value="levels"),
+        discord.app_commands.Choice(name="Tickets", value="tickets"),
+        discord.app_commands.Choice(name="Automod", value="automod"),
+        discord.app_commands.Choice(name="Sorteos", value="giveaways"),
+        discord.app_commands.Choice(name="Entretenimiento", value="entertainment")
+    ],
+    action=[
+        discord.app_commands.Choice(name="Activar", value="enable"),
+        discord.app_commands.Choice(name="Desactivar", value="disable"),
+        discord.app_commands.Choice(name="Ver Estado", value="status")
+    ]
+)
+async def modules_command(interaction: discord.Interaction, module: str, action: str):
+  """Gestionar módulos del bot"""
+  if not interaction.user.guild_permissions.administrator:
+      await interaction.response.send_message("❌ Este comando es solo para administradores.", ephemeral=True)
+      return
+
+  if action == "status":
+      embed = discord.Embed(
+          title="⚙️ Estado de Módulos",
+          description="Estado actual de todos los módulos:",
+          color=discord.Color.blue()
+      )
+
+      module_names = {
+          'economy': '💰 Sistema de Economía',
+          'levels': '🏆 Sistema de Niveles', 
+          'tickets': '🎫 Sistema de Tickets',
+          'automod': '🛡️ Moderación Automática',
+          'giveaways': '🎉 Sorteos',
+          'entertainment': '🎮 Entretenimiento'
+      }
+
+      for mod_key, mod_name in module_names.items():
+          status = "✅ Activado" if system_modules.get(mod_key, True) else "❌ Desactivado"
+          embed.add_field(name=mod_name, value=status, inline=True)
+
+      await interaction.response.send_message(embed=embed, ephemeral=True)
+      return
+
+  # Cambiar estado del módulo
+  if action == "enable":
+      system_modules[module] = True
+      status_text = "✅ Activado"
+      color = discord.Color.green()
+  else:  # disable
+      system_modules[module] = False
+      status_text = "❌ Desactivado"
+      color = discord.Color.red()
+
+  module_names = {
+      'economy': '💰 Sistema de Economía',
+      'levels': '🏆 Sistema de Niveles', 
+      'tickets': '🎫 Sistema de Tickets',
+      'automod': '🛡️ Moderación Automática',
+      'giveaways': '🎉 Sorteos',
+      'entertainment': '🎮 Entretenimiento'
+  }
+
+  embed = discord.Embed(
+      title="⚙️ Módulo Actualizado",
+      description=f"**{module_names.get(module, module.title())}** ha sido {status_text.lower()}",
+      color=color
+  )
+  embed.add_field(name="📊 Nuevo Estado", value=status_text, inline=True)
+  embed.set_footer(text=f"Modificado por {interaction.user.display_name}")
+
+  await interaction.response.send_message(embed=embed, ephemeral=True)
 
 
 # Configurar Flask
@@ -5385,7 +6728,7 @@ def home():
   return jsonify({
       "status": "online",
       "bot": "GuardianPro",
-      "version": "GPC 3",
+      "version": "GPC 4",
       "servers": len(bot.guilds),
       "users": len(bot.users)
   })
