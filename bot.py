@@ -2667,12 +2667,7 @@ async def ticket_remove_category(interaction: discord.Interaction,
             ephemeral=True)
         return
 
-    # No permitir eliminar categorías básicas
-    if category_id in ["general", "bugs", "suggestions", "other"]:
-        await interaction.response.send_message(
-            f"❌ No puedes eliminar la categoría básica '{category_id}'.",
-            ephemeral=True)
-        return
+    # Ahora se permite eliminar cualquier categoría, incluidas las básicas
 
     category_name = categories[category_id]["name"]
     del categories[category_id]
@@ -3246,9 +3241,9 @@ async def reminder_command(interaction: discord.Interaction, time: int,
             ephemeral=True)
         return
 
-    if time <= 0 or time > 1440:  # Máximo 24 horas
+    if time <= 0:
         await interaction.response.send_message(
-            "❌ El tiempo debe ser entre 1 minuto y 1440 minutos (24 horas).",
+            "❌ El tiempo debe ser mayor a 0 minutos.",
             ephemeral=True)
         return
 
