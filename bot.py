@@ -1,4 +1,4 @@
-  try:
+try:
   import discord
   from discord.ext import commands
 except ImportError:
