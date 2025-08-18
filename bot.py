@@ -25,7 +25,7 @@ def get_prefix(bot, message):
   if message.content.startswith('.'):
       return '.'
   # Comandos especiales usan ∆ NO PONER
-  elif message.content.startswith(' '):
+  elif message.content.startswith('∆'):
       return '∆'
   # Comandos administrativos usan *
   elif message.content.startswith('*'):
@@ -1757,53 +1757,65 @@ async def update_all_ticket_panels(guild):
   try:
       # Obtener configuración personalizada del panel
       panel_config = get_panel_config(guild.id)
+      updated_panels = 0
       
       for channel in guild.text_channels:
-          async for message in channel.history(limit=50):
-              if (message.author == guild.me and message.embeds
-                      and ("Sistema de Tickets" in message.embeds[0].title or 
-                           "Tickets" in message.embeds[0].title)):
+          try:
+              async for message in channel.history(limit=50):
+                  if (message.author == guild.me and message.embeds
+                          and (panel_config["title"] in message.embeds[0].title or 
+                               "Sistema de Tickets" in message.embeds[0].title or 
+                               "Tickets" in message.embeds[0].title)):
 
-                  # Crear nueva vista con categorías actualizadas
-                  view = TicketView(guild.id)
+                      # Crear nueva vista con categorías actualizadas
+                      view = TicketView(guild.id)
 
-                  # Crear embed completamente nuevo con configuración actualizada
-                  categories = get_guild_categories(guild.id)
-                  active_count = len([
-                      ch for ch in guild.channels
-                      if ch.name.startswith('ticket-')
-                  ])
+                      # Crear embed completamente nuevo con configuración actualizada
+                      categories = get_guild_categories(guild.id)
+                      active_count = len([
+                          ch for ch in guild.channels
+                          if ch.name.startswith('ticket-')
+                      ])
 
-                  categories_text = "\n".join([
-                      f"• {cat['name']}"
-                      for cat in categories.values()
-                  ][:8])
-                  if len(categories) > 8:
-                      categories_text += f"\n• Y {len(categories) - 8} más..."
+                      if categories:
+                          categories_text = "\n".join([
+                              f"• {cat['name']}"
+                              for cat in categories.values()
+                          ][:8])
+                          if len(categories) > 8:
+                              categories_text += f"\n• Y {len(categories) - 8} más..."
+                      else:
+                          categories_text = "No hay categorías configuradas"
 
-                  # Crear embed nuevo con configuración personalizada
-                  embed = discord.Embed(
-                      title=panel_config["title"],
-                      description=panel_config["description"],
-                      color=discord.Color.blue())
+                      # Crear embed nuevo con configuración personalizada
+                      embed = discord.Embed(
+                          title=panel_config["title"],
+                          description=panel_config["description"],
+                          color=discord.Color.blue())
 
-                  embed.add_field(name="🎫 Tickets Activos",
-                                  value=f"**{active_count}** tickets abiertos",
-                                  inline=True)
+                      embed.add_field(name="🎫 Tickets Activos",
+                                      value=f"**{active_count}** tickets abiertos",
+                                      inline=True)
 
-                  embed.add_field(name="📋 Categorías Disponibles",
-                                  value=categories_text,
-                                  inline=True)
+                      embed.add_field(name="📋 Categorías Disponibles",
+                                      value=categories_text,
+                                      inline=True)
 
-                  embed.set_footer(text=panel_config["footer"])
+                      embed.set_footer(text=panel_config["footer"])
 
-                  await message.edit(embed=embed, view=view)
-                  print(
-                      f"Panel de tickets actualizado en canal: {channel.name}"
-                  )
+                      await message.edit(embed=embed, view=view)
+                      updated_panels += 1
+                      print(f"Panel de tickets actualizado en canal: {channel.name}")
+                      break  # Solo actualizar el primer panel encontrado en cada canal
+
+          except Exception as channel_error:
+              print(f"Error actualizando panel en canal {channel.name}: {channel_error}")
+              continue
+
+      print(f"Actualizados {updated_panels} paneles de tickets en {guild.name}")
 
   except Exception as e:
-      print(f"Error actualizando paneles de tickets: {e}")
+      print(f"Error general actualizando paneles de tickets: {e}")
 
 
 def get_guild_categories(guild_id):
@@ -2013,71 +2025,8 @@ class TicketView(discord.ui.View):
   async def update_ticket_panel(self, guild):
       """Actualizar el panel de tickets con el contador actual y botones dinámicos"""
       try:
-          # Buscar el mensaje del panel de tickets en el servidor
-          for channel in guild.text_channels:
-              async for message in channel.history(limit=50):
-                  if (message.author == guild.me and message.embeds and
-                          "Sistema de Tickets" in message.embeds[0].title):
-
-                      # Contar tickets activos
-                      active_count = len([
-                          ch for ch in guild.channels
-                          if ch.name.startswith('ticket-')
-                      ])
-
-                      # Actualizar embed
-                      embed = message.embeds[0]
-
-                      # Buscar y actualizar el campo de estadísticas
-                      updated = False
-                      for i, field in enumerate(embed.fields):
-                          if "Tickets Activos" in field.name:
-                              embed.set_field_at(
-                                  i,
-                                  name="🎫 Tickets Activos",
-                                  value=
-                                  f"**{active_count}** tickets abiertos",
-                                  inline=True)
-                              updated = True
-                              break
-
-                      # Si no existe el campo, agregarlo
-                      if not updated:
-                          embed.add_field(
-                              name="🎫 Tickets Activos",
-                              value=f"**{active_count}** tickets abiertos",
-                              inline=True)
-
-                      # Obtener categorías disponibles
-                      categories = get_guild_categories(guild.id)
-                      categories_text = "\n".join([
-                          f"• {cat['name']}" for cat in categories.values()
-                      ][:8])
-                      if len(categories) > 8:
-                          categories_text += f"\n• Y {len(categories) - 8} más..."
-
-                      # Actualizar o agregar campo de categorías
-                      categories_updated = False
-                      for i, field in enumerate(embed.fields):
-                          if "Categorías Disponibles" in field.name:
-                              embed.set_field_at(
-                                  i,
-                                  name="📋 Categorías Disponibles",
-                                  value=categories_text,
-                                  inline=True)
-                              categories_updated = True
-                              break
-
-                      if not categories_updated:
-                          embed.add_field(name="📋 Categorías Disponibles",
-                                          value=categories_text,
-                                          inline=True)
-
-                      # Crear nueva vista con botones actualizados
-                      new_view = TicketView(guild.id)
-
-                      await message.edit(embed=embed, view=new_view)
-                      return
+          # Usar la función global mejorada de actualización
+          await update_all_ticket_panels(guild)
       except Exception as e:
           print(f"Error actualizando panel de tickets: {e}")
 
@@ -2881,7 +2830,8 @@ class ConfirmRemoveView(discord.ui.View):
       await interaction.response.edit_message(embed=embed, view=None)
 
 @bot.tree.command(name="tremove", description="Eliminar categoría de ticket")
-async def ticket_remove_category(interaction: discord.Interaction):
+@discord.app_commands.describe(category_id="ID de la categoría a eliminar")
+async def ticket_remove_category(interaction: discord.Interaction, category_id: str):
   if not interaction.user.guild_permissions.manage_channels:
       await interaction.response.send_message(
           "❌ Necesitas permisos de **Administrar Canales**.", ephemeral=True)
@@ -2890,33 +2840,42 @@ async def ticket_remove_category(interaction: discord.Interaction):
   guild_id = str(interaction.guild.id)
   categories = get_guild_categories(guild_id)
 
-  if not categories:
-      await interaction.response.send_message(
-          "❌ No hay categorías configuradas para eliminar.",
-          ephemeral=True)
+  if category_id not in categories:
+      # Mostrar las categorías disponibles para ayudar al usuario
+      available_categories = list(categories.keys())
+      if available_categories:
+          categories_list = "\n".join([f"• `{cat_id}` - {categories[cat_id]['name']}" for cat_id in available_categories[:10]])
+          await interaction.response.send_message(
+              f"❌ No existe una categoría con ID '{category_id}'.\n\n**Categorías disponibles:**\n{categories_list}",
+              ephemeral=True)
+      else:
+          await interaction.response.send_message(
+              f"❌ No hay categorías configuradas para eliminar.",
+              ephemeral=True)
       return
+
+  category_name = categories[category_id]["name"]
+
+  # Eliminar la categoría
+  del categories[category_id]
+  ticket_categories[guild_id] = categories
+  save_ticket_categories()
 
   embed = discord.Embed(
-      title="🗑️ Eliminar Categoría de Ticket",
-      description="Selecciona la categoría que quieres eliminar del menú desplegable:",
-      color=discord.Color.red())
+      title="✅ Categoría Eliminada",
+      description=f"Se ha eliminado la categoría **{category_name}** exitosamente.",
+      color=discord.Color.green())
+  
+  embed.add_field(name="🆔 ID eliminado", value=f"`{category_id}`", inline=True)
+  embed.add_field(name="📊 Categorías restantes", value=f"{len(categories)}", inline=True)
 
-  embed.add_field(
-      name="📋 Categorías Disponibles",
-      value=f"**{len(categories)}** categorías configuradas",
-      inline=True)
+  await interaction.response.send_message(embed=embed)
 
-  embed.set_footer(text="⚠️ Esta acción no se puede deshacer")
-
-  view = RemoveCategoryView(guild_id)
-
-  if not view.children:  # Si no se pudo crear el menú
-      await interaction.response.send_message(
-          "❌ No hay categorías disponibles para eliminar.",
-          ephemeral=True)
-      return
-
-  await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+  # Actualizar todos los paneles de tickets
+  try:
+      await update_all_ticket_panels(interaction.guild)
+  except Exception as e:
+      print(f"Error actualizando paneles tras eliminar categoría: {e}")
 
 
 @bot.tree.command(name="tpanel_title", description="Cambiar título del panel de tickets")
@@ -3157,6 +3116,56 @@ async def tpanel_command(interaction: discord.Interaction):
                   inline=False)
 
   embed.set_footer(text="Panel de configuración de texto • Solo administradores")
+
+  await interaction.response.send_message(embed=embed, ephemeral=True)
+
+
+@bot.tree.command(name="tlist", description="Listar todas las categorías de tickets configuradas")
+async def ticket_list_categories(interaction: discord.Interaction):
+  """Listar todas las categorías configuradas"""
+  if not interaction.user.guild_permissions.manage_channels:
+      await interaction.response.send_message(
+          "❌ Necesitas permisos de **Administrar Canales**.", ephemeral=True)
+      return
+
+  guild_id = str(interaction.guild.id)
+  categories = get_guild_categories(guild_id)
+
+  if not categories:
+      await interaction.response.send_message(
+          "❌ No hay categorías configuradas en este servidor.\n\nUsa `/tadd` para añadir categorías.",
+          ephemeral=True)
+      return
+
+  embed = discord.Embed(
+      title="📋 Categorías de Tickets Configuradas",
+      description=f"Lista de todas las categorías disponibles en **{interaction.guild.name}**:",
+      color=discord.Color.blue())
+
+  for cat_id, cat_data in categories.items():
+      color_emoji = {
+          'red': '🔴',
+          'green': '🟢', 
+          'blue': '🔵',
+          'gray': '⚪',
+          'grey': '⚪',
+          'purple': '🟣',
+          'orange': '🟠'
+      }
+      
+      emoji = color_emoji.get(cat_data.get('color', 'blue'), '🔵')
+      
+      embed.add_field(
+          name=f"{emoji} {cat_data['name']}",
+          value=f"**ID:** `{cat_id}`\n**Descripción:** {cat_data['description']}\n**Color:** {cat_data.get('color', 'blue')}",
+          inline=True)
+
+  embed.add_field(
+      name="⚙️ Comandos Útiles",
+      value="• `/tadd` - Añadir nueva categoría\n• `/tedit <id>` - Editar categoría\n• `/tremove <id>` - Eliminar categoría",
+      inline=False)
+
+  embed.set_footer(text=f"Total: {len(categories)} categorías • Usa los IDs para editar/eliminar")
 
   await interaction.response.send_message(embed=embed, ephemeral=True)
 
