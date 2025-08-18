@@ -1,4 +1,4 @@
-try:
+  try:
   import discord
   from discord.ext import commands
 except ImportError:
@@ -616,30 +616,6 @@ class HelpView(discord.ui.View):
               ("**/4dmin** → Panel administrativo completo\n"
                "**/tadmin** → Panel de tickets avanzado\n"
                "*(Solo para administradores)*")
-          }, {
-              "name":
-              "💰 Gestión de Economía",
-              "value":
-              ("**/eco** @usuario cantidad → Añadir dinero\n"
-               "**/oce** @usuario cantidad → Quitar dinero\n"
-               "**/ecoreset** @usuario → Resetear balance\n"
-               "**/winset** <premio> → Configurar lotería")
-          }, {
-              "name":
-              "🎫 Gestión de Tickets",
-              "value":
-              ("**/tadd** → Añadir categoría de ticket\n"
-               "**/tedit** → Editar categoría\n"
-               "**/tremove** → Eliminar categoría\n"
-               "**/closeall** → Cerrar todos los tickets")
-          }, {
-              "name":
-              "🔧 Utilidades Admin",
-              "value":
-              ("**/say** → Hacer que el bot hable\n"
-               "**/giveperms** → Otorgar permisos especiales\n"
-               "**/modules** → Gestionar módulos del bot\n"
-               "**/purge** → Limpiar mensajes")
           }]
       }]
 
