@@ -4150,9 +4150,6 @@ async def on_message(message):
   if guild_id:
       await process_level_system(message)
 
-  # CRÍTICO: Procesar comandos de economía y otros
-  await bot.process_commands(message)
-
 async def apply_automod_action(message, guild_id, user_id, reason):
   """Aplica acciones de automod (advertencia, castigo)"""
   if user_id not in warning_counts:
