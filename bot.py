@@ -2649,10 +2649,106 @@ async def ticket_edit_category(interaction: discord.Interaction,
         print(f"Error actualizando paneles tras editar categoría: {e}")
 
 
+class RemoveCategoryView(discord.ui.View):
+    def __init__(self, guild_id):
+        super().__init__(timeout=60)
+        self.guild_id = guild_id
+        self.setup_select_menu()
+    
+    def setup_select_menu(self):
+        categories = get_guild_categories(self.guild_id)
+        
+        if not categories:
+            return
+        
+        options = []
+        for cat_id, cat_data in categories.items():
+            options.append(discord.SelectOption(
+                label=cat_data['name'][:100],  # Discord límite
+                description=cat_data['description'][:100],
+                value=cat_id,
+                emoji="🗑️"
+            ))
+        
+        # Limitar a 25 opciones (límite de Discord)
+        if len(options) > 25:
+            options = options[:25]
+        
+        if options:
+            select = discord.ui.Select(
+                placeholder="Selecciona la categoría que quieres eliminar...",
+                options=options
+            )
+            select.callback = self.category_selected
+            self.add_item(select)
+    
+    async def category_selected(self, interaction: discord.Interaction):
+        category_id = interaction.data['values'][0]
+        guild_id = str(interaction.guild.id)
+        categories = get_guild_categories(guild_id)
+        
+        if category_id not in categories:
+            await interaction.response.send_message(
+                f"❌ No existe esa categoría.",
+                ephemeral=True)
+            return
+        
+        category_name = categories[category_id]["name"]
+        
+        # Crear embed de confirmación
+        confirm_embed = discord.Embed(
+            title="⚠️ Confirmar Eliminación",
+            description=f"¿Estás seguro de que quieres eliminar la categoría **{category_name}**?\n\n"
+                       f"**Esta acción no se puede deshacer.**",
+            color=discord.Color.orange())
+        
+        confirm_view = ConfirmRemoveView(category_id, category_name, guild_id)
+        await interaction.response.edit_message(embed=confirm_embed, view=confirm_view)
+
+class ConfirmRemoveView(discord.ui.View):
+    def __init__(self, category_id, category_name, guild_id):
+        super().__init__(timeout=30)
+        self.category_id = category_id
+        self.category_name = category_name
+        self.guild_id = guild_id
+    
+    @discord.ui.button(label='✅ Sí, eliminar', style=discord.ButtonStyle.danger)
+    async def confirm_remove(self, interaction: discord.Interaction, button: discord.ui.Button):
+        guild_id = str(interaction.guild.id)
+        categories = get_guild_categories(guild_id)
+        
+        if self.category_id in categories:
+            del categories[self.category_id]
+            save_ticket_categories()
+            
+            embed = discord.Embed(
+                title="✅ Categoría Eliminada",
+                description=f"Se ha eliminado la categoría **{self.category_name}** exitosamente.",
+                color=discord.Color.green())
+            
+            await interaction.response.edit_message(embed=embed, view=None)
+            
+            # Actualizar todos los paneles de tickets
+            try:
+                await update_all_ticket_panels(interaction.guild)
+            except Exception as e:
+                print(f"Error actualizando paneles tras eliminar categoría: {e}")
+        else:
+            await interaction.response.edit_message(
+                content="❌ Error: La categoría ya no existe.",
+                embed=None,
+                view=None)
+    
+    @discord.ui.button(label='❌ Cancelar', style=discord.ButtonStyle.secondary)
+    async def cancel_remove(self, interaction: discord.Interaction, button: discord.ui.Button):
+        embed = discord.Embed(
+            title="❌ Eliminación Cancelada",
+            description="La categoría no ha sido eliminada.",
+            color=discord.Color.blue())
+        await interaction.response.edit_message(embed=embed, view=None)
+
 @bot.tree.command(name="tremove", description="Eliminar categoría de ticket")
-@discord.app_commands.describe(category_id="ID de la categoría a eliminar")
-async def ticket_remove_category(interaction: discord.Interaction,
-                                 category_id: str):
+async def ticket_remove_category(interaction: discord.Interaction):
     if not interaction.user.guild_permissions.manage_channels:
         await interaction.response.send_message(
             "❌ Necesitas permisos de **Administrar Canales**.", ephemeral=True)
@@ -2661,31 +2757,33 @@ async def ticket_remove_category(interaction: discord.Interaction,
     guild_id = str(interaction.guild.id)
     categories = get_guild_categories(guild_id)
 
-    if category_id not in categories:
+    if not categories:
         await interaction.response.send_message(
-            f"❌ No existe una categoría con ID '{category_id}'.",
+            "❌ No hay categorías configuradas para eliminar.",
             ephemeral=True)
         return
 
-    # Ahora se permite eliminar cualquier categoría, incluidas las básicas
-
-    category_name = categories[category_id]["name"]
-    del categories[category_id]
-    save_ticket_categories()
-
     embed = discord.Embed(
-        title="✅ Categoría Eliminada",
-        description=
-        f"Se ha eliminado la categoría **{category_name}** exitosamente.",
+        title="🗑️ Eliminar Categoría de Ticket",
+        description="Selecciona la categoría que quieres eliminar del menú desplegable:",
         color=discord.Color.red())
-
-    await interaction.response.send_message(embed=embed)
-
-    # Actualizar todos los paneles de tickets
-    try:
-        await update_all_ticket_panels(interaction.guild)
-    except Exception as e:
-        print(f"Error actualizando paneles tras eliminar categoría: {e}")
+    
+    embed.add_field(
+        name="📋 Categorías Disponibles",
+        value=f"**{len(categories)}** categorías configuradas",
+        inline=True)
+    
+    embed.set_footer(text="⚠️ Esta acción no se puede deshacer")
+    
+    view = RemoveCategoryView(guild_id)
+    
+    if not view.children:  # Si no se pudo crear el menú
+        await interaction.response.send_message(
+            "❌ No hay categorías disponibles para eliminar.",
+            ephemeral=True)
+        return
+    
+    await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
 
 
 @bot.tree.command(
