@@ -3087,6 +3087,54 @@ async def ticket_panel_view(interaction: discord.Interaction):
   await interaction.response.send_message(embed=embed, ephemeral=True)
 
 
+@bot.tree.command(name="tpanel", description="Panel de configuración del texto de tickets")
+async def tpanel_command(interaction: discord.Interaction):
+  """Panel para configurar el texto del panel de tickets"""
+  if not interaction.user.guild_permissions.manage_channels:
+      await interaction.response.send_message(
+          "❌ Necesitas permisos de **Administrar Canales**.", ephemeral=True)
+      return
+
+  guild_id = interaction.guild.id
+  panel_config = get_panel_config(guild_id)
+
+  embed = discord.Embed(
+      title="🎨 Panel de Configuración de Texto",
+      description="**Personaliza el texto del panel de tickets**\n\n"
+                  "Usa los comandos disponibles para modificar el texto que aparece en el panel de tickets:",
+      color=discord.Color.purple())
+
+  embed.add_field(name="📌 Título Actual",
+                  value=f"```{panel_config['title']}```",
+                  inline=False)
+  
+  embed.add_field(name="📝 Descripción Actual",
+                  value=f"```{panel_config['description'][:500]}{'...' if len(panel_config['description']) > 500 else ''}```",
+                  inline=False)
+  
+  embed.add_field(name="🔗 Footer Actual",
+                  value=f"```{panel_config['footer']}```",
+                  inline=False)
+
+  embed.add_field(name="⚙️ Comandos Disponibles",
+                  value="🔹 `/tpanel_title <nuevo_título>` - Cambiar título\n"
+                        "🔹 `/tpanel_desc <nueva_descripción>` - Cambiar descripción\n"
+                        "🔹 `/tpanel_footer <nuevo_footer>` - Cambiar footer\n"
+                        "🔹 `/tpanel_view` - Ver configuración actual\n"
+                        "🔹 `/tpanel_reset` - Restaurar texto por defecto",
+                  inline=False)
+
+  embed.add_field(name="📋 Información",
+                  value="• Los cambios se aplicarán automáticamente a todos los paneles existentes\n"
+                        "• Para crear un nuevo panel usa `/ticket_setup`\n"
+                        "• Los paneles se actualizan en tiempo real",
+                  inline=False)
+
+  embed.set_footer(text="Panel de configuración de texto • Solo administradores")
+
+  await interaction.response.send_message(embed=embed, ephemeral=True)
+
+
 @bot.tree.command(
   name='tadmin',
   description='Panel administrativo de tickets con menú de selección')
