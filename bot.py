@@ -2650,13 +2650,14 @@ async def ticket_add_category(interaction: discord.Interaction,
   categories = get_guild_categories(guild_id)
 
   # Generar ID único para la categoría
-  category_id = name.lower().replace(" ", "_")
-
-  if category_id in categories:
-      await interaction.response.send_message(
-          f"❌ Ya existe una categoría con el nombre '{name}'.",
-          ephemeral=True)
-      return
+  category_id = name.lower().replace(" ", "_").replace("-", "_")
+  
+  # Asegurar que el ID sea único
+  original_id = category_id
+  counter = 1
+  while category_id in categories:
+      category_id = f"{original_id}_{counter}"
+      counter += 1
 
   # Verificar permisos en la categoría si se especificó
   if category and not category.permissions_for(
@@ -2666,6 +2667,7 @@ async def ticket_add_category(interaction: discord.Interaction,
           ephemeral=True)
       return
 
+  # Añadir la nueva categoría
   categories[category_id] = {
       "name": f"🎫 {name}",
       "color": color,
@@ -2673,12 +2675,15 @@ async def ticket_add_category(interaction: discord.Interaction,
       "category_id": category.id if category else None
   }
 
+  # Actualizar el diccionario global y guardar
+  ticket_categories[guild_id] = categories
   save_ticket_categories()
 
   embed = discord.Embed(
       title="✅ Categoría Añadida",
       description=f"Se ha añadido la categoría **{name}** exitosamente.",
       color=discord.Color.green())
+  embed.add_field(name="🆔 ID de categoría", value=f"`{category_id}`", inline=True)
   embed.add_field(name="📝 Descripción", value=description, inline=False)
   embed.add_field(name="🎨 Color", value=color, inline=True)
 
@@ -2720,13 +2725,25 @@ async def ticket_edit_category(interaction: discord.Interaction,
   categories = get_guild_categories(guild_id)
 
   if category_id not in categories:
-      await interaction.response.send_message(
-          f"❌ No existe una categoría con ID '{category_id}'.",
-          ephemeral=True)
+      # Mostrar las categorías disponibles para ayudar al usuario
+      available_categories = list(categories.keys())
+      if available_categories:
+          categories_list = "\n".join([f"• `{cat_id}` - {categories[cat_id]['name']}" for cat_id in available_categories[:10]])
+          await interaction.response.send_message(
+              f"❌ No existe una categoría con ID '{category_id}'.\n\n**Categorías disponibles:**\n{categories_list}",
+              ephemeral=True)
+      else:
+          await interaction.response.send_message(
+              f"❌ No existe una categoría con ID '{category_id}'. No hay categorías configuradas.",
+              ephemeral=True)
       return
 
   category = categories[category_id]
+  old_name = category["name"]
+  old_description = category["description"]
+  old_color = category["color"]
 
+  # Actualizar solo los campos que se proporcionaron
   if name:
       category["name"] = f"🎫 {name}"
   if description:
@@ -2734,18 +2751,25 @@ async def ticket_edit_category(interaction: discord.Interaction,
   if color:
       category["color"] = color
 
+  # Actualizar el diccionario global y guardar
+  ticket_categories[guild_id] = categories
   save_ticket_categories()
 
   embed = discord.Embed(
       title="✅ Categoría Editada",
-      description=
-      f"Se ha editado la categoría **{category_id}** exitosamente.",
+      description=f"Se ha editado la categoría **{category_id}** exitosamente.",
       color=discord.Color.blue())
-  embed.add_field(name="📛 Nombre", value=category["name"], inline=True)
-  embed.add_field(name="📝 Descripción",
-                  value=category["description"],
+  
+  embed.add_field(name="🆔 ID", value=f"`{category_id}`", inline=True)
+  embed.add_field(name="📛 Nombre", 
+                  value=f"{old_name} → {category['name']}" if name else category["name"], 
                   inline=False)
-  embed.add_field(name="🎨 Color", value=category["color"], inline=True)
+  embed.add_field(name="📝 Descripción",
+                  value=f"{old_description} → {category['description']}" if description else category["description"],
+                  inline=False)
+  embed.add_field(name="🎨 Color", 
+                  value=f"{old_color} → {category['color']}" if color else category["color"], 
+                  inline=True)
 
   await interaction.response.send_message(embed=embed)
 
@@ -2770,8 +2794,10 @@ class RemoveCategoryView(discord.ui.View):
 
       options = []
       for cat_id, cat_data in categories.items():
+          # Limpiar el nombre del emoji para el menú
+          clean_name = cat_data['name'].replace('🎫 ', '')
           options.append(discord.SelectOption(
-              label=cat_data['name'][:100],  # Discord límite
+              label=clean_name[:100],  # Discord límite
               description=cat_data['description'][:100],
               value=cat_id,
               emoji="🗑️"
@@ -2809,7 +2835,7 @@ class RemoveCategoryView(discord.ui.View):
                      f"**Esta acción no se puede deshacer.**",
           color=discord.Color.orange())
 
-      confirm_view = ConfirmRemoveView(category_id, category_name, guild_id)
+      confirm_view = ConfirmRemoveView(category_id, category_name, self.guild_id)
       await interaction.response.edit_message(embed=confirm_embed, view=confirm_view)
 
 class ConfirmRemoveView(discord.ui.View):
@@ -2821,7 +2847,7 @@ class ConfirmRemoveView(discord.ui.View):
 
   @discord.ui.button(label='✅ Sí, eliminar', style=discord.ButtonStyle.danger)
   async def confirm_remove(self, interaction: discord.Interaction, button: discord.ui.Button):
-      guild_id = str(interaction.guild.id)
+      guild_id = str(self.guild_id)
       categories = get_guild_categories(guild_id)
 
       if self.category_id in categories:
