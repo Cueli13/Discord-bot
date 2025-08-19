@@ -134,12 +134,27 @@ async def on_ready():
       print(f"Sincronizados {len(synced)} slash commands")
   except Exception as e:
       print(f"Error al sincronizar slash commands: {e}")
+  
+  # Registrar vistas persistentes para que funcionen después de reiniciar el bot
+  for guild in bot.guilds:
+      # Registrar vista de tickets para cada servidor
+      ticket_view = TicketView(guild.id)
+      bot.add_view(ticket_view)
+      
+      # Registrar vista de cierre de tickets
+      close_view = CloseTicketView()
+      bot.add_view(close_view)
+      
+      confirm_view = ConfirmCloseView()
+      bot.add_view(confirm_view)
+  
   print("✅ Bot GuardianPro configurado correctamente:")
   print("• Sistema de economía con prefijo .")
   print("• Moderación automática")
   print("• Sistema de niveles y tickets")
   print("• Utilidades y entretenimiento")
   print("• Comandos especiales ocultos")
+  print("• Vistas de tickets registradas y persistentes")
 
 
 @bot.event
@@ -1740,14 +1755,14 @@ def set_panel_config(guild_id, title=None, description=None, footer=None):
   """Establecer configuración del panel de tickets"""
   guild_id = str(guild_id)
   config = get_panel_config(guild_id)
-  
+
   if title is not None:
       config["title"] = title
   if description is not None:
       config["description"] = description
   if footer is not None:
       config["footer"] = footer
-  
+
   ticket_panel_configs[guild_id] = config
   save_ticket_panel_configs()
 
@@ -1758,7 +1773,7 @@ async def update_all_ticket_panels(guild):
       # Obtener configuración personalizada del panel
       panel_config = get_panel_config(guild.id)
       updated_panels = 0
-      
+
       for channel in guild.text_channels:
           try:
               async for message in channel.history(limit=50):
@@ -1861,6 +1876,23 @@ class TicketView(discord.ui.View):
       self.guild_id = guild_id
       self.setup_category_select()
 
+  async def on_error(self, interaction: discord.Interaction, error: Exception, item: discord.ui.Item) -> None:
+      """Manejar errores de interacción"""
+      try:
+          if not interaction.response.is_done():
+              await interaction.response.send_message(
+                  "❌ Hubo un error procesando tu solicitud. Por favor, intenta de nuevo.",
+                  ephemeral=True
+              )
+          else:
+              await interaction.followup.send(
+                  "❌ Hubo un error procesando tu solicitud. Por favor, intenta de nuevo.",
+                  ephemeral=True
+              )
+      except:
+          pass
+      print(f"Error en TicketView: {error}")
+
   def setup_category_select(self):
       """Configurar menú desplegable basado en las categorías disponibles"""
       categories = get_guild_categories(self.guild_id)
@@ -1885,9 +1917,9 @@ class TicketView(discord.ui.View):
               'gray': '⚪',
               'grey': '⚪'
           }
-          
+
           emoji = emoji_map.get(category_data.get('color', 'blue'), '🎫')
-          
+
           option = discord.SelectOption(
               label=category_data['name'][:100],  # Discord límite de caracteres
               description=category_data['description'][:100],  # Discord límite
@@ -1903,46 +1935,68 @@ class TicketView(discord.ui.View):
               options=options,
               custom_id="ticket_category_select"
           )
-          
+
           # Asignar callback
           select.callback = self.on_category_select
           self.add_item(select)
 
   async def on_category_select(self, interaction: discord.Interaction):
       """Manejar la selección de categoría del menú desplegable"""
-      category_id = interaction.data['values'][0]
-      categories = get_guild_categories(self.guild_id)
-      
-      if category_id not in categories:
-          await interaction.response.send_message(
-              "❌ Error: Categoría no encontrada.", ephemeral=True)
-          return
-      
-      category_data = categories[category_id]
-      await self.create_ticket_with_category(interaction, category_id, category_data)
+      try:
+          if not interaction.data or 'values' not in interaction.data:
+              await interaction.response.send_message(
+                  "❌ Error: Datos de selección inválidos.", ephemeral=True)
+              return
+
+          category_id = interaction.data['values'][0]
+          categories = get_guild_categories(self.guild_id)
+
+          if category_id not in categories:
+              await interaction.response.send_message(
+                  "❌ Error: Categoría no encontrada.", ephemeral=True)
+              return
+
+          category_data = categories[category_id]
+          await self.create_ticket_with_category(interaction, category_id, category_data)
+      except Exception as e:
+          try:
+              if not interaction.response.is_done():
+                  await interaction.response.send_message(
+                      "❌ Error al procesar tu selección. Intenta de nuevo.", ephemeral=True)
+              else:
+                  await interaction.followup.send(
+                      "❌ Error al procesar tu selección. Intenta de nuevo.", ephemeral=True)
+          except:
+              pass
+          print(f"Error en on_category_select: {e}")
 
   async def create_ticket_with_category(self,
                                         interaction: discord.Interaction,
                                         category_id: str,
                                         category_data: dict):
-      guild = interaction.guild
-      user = interaction.user
-
-      # Verificar si ya tiene un ticket abierto
-      existing_ticket = None
-      for channel in guild.channels:
-          if channel.name == f"ticket-{user.name.lower()}" or channel.name == f"ticket-{user.id}":
-              existing_ticket = channel
-              break
-
-      if existing_ticket:
-          await interaction.response.send_message(
-              f"❌ Ya tienes un ticket abierto: {existing_ticket.mention}",
-              ephemeral=True)
-          return
-
-      # Crear canal de ticket
       try:
+          guild = interaction.guild
+          user = interaction.user
+
+          # Verificar si ya tiene un ticket abierto
+          existing_ticket = None
+          for channel in guild.channels:
+              if channel.name == f"ticket-{user.name.lower()}" or channel.name == f"ticket-{user.id}":
+                  existing_ticket = channel
+                  break
+
+          if existing_ticket:
+              if not interaction.response.is_done():
+                  await interaction.response.send_message(
+                      f"❌ Ya tienes un ticket abierto: {existing_ticket.mention}",
+                      ephemeral=True)
+              else:
+                  await interaction.followup.send(
+                      f"❌ Ya tienes un ticket abierto: {existing_ticket.mention}",
+                      ephemeral=True)
+              return
+
+          # Crear canal de ticket
           overwrites = {
               guild.default_role:
               discord.PermissionOverwrite(read_messages=False),
@@ -2008,9 +2062,14 @@ class TicketView(discord.ui.View):
           await ticket_channel.send(embed=embed, view=close_view)
 
           # Mensaje de confirmación
-          await interaction.response.send_message(
-              f"✅ Tu ticket de **{category_data['name']}** ha sido creado: {ticket_channel.mention}",
-              ephemeral=True)
+          if not interaction.response.is_done():
+              await interaction.response.send_message(
+                  f"✅ Tu ticket de **{category_data['name']}** ha sido creado: {ticket_channel.mention}",
+                  ephemeral=True)
+          else:
+              await interaction.followup.send(
+                  f"✅ Tu ticket de **{category_data['name']}** ha sido creado: {ticket_channel.mention}",
+                  ephemeral=True)
 
           # Guardar ticket activo
           active_tickets[user.id] = ticket_channel.id
@@ -2019,8 +2078,27 @@ class TicketView(discord.ui.View):
           await self.update_ticket_panel(interaction.guild)
 
       except Exception as e:
-          await interaction.response.send_message(
-              f"❌ Error al crear el ticket: {str(e)}", ephemeral=True)
+          try:
+              if not interaction.response.is_done():
+                  await interaction.response.send_message(
+                      f"❌ Error al crear el ticket: {str(e)}", ephemeral=True)
+              else:
+                  await interaction.followup.send(
+                      f"❌ Error al crear el ticket: {str(e)}", ephemeral=True)
+          except:
+              pass
+          print(f"Error en create_ticket_with_category: {e}")
+      except Exception as e:
+          try:
+              if not interaction.response.is_done():
+                  await interaction.response.send_message(
+                      "❌ Error al procesar tu solicitud. Intenta de nuevo.", ephemeral=True)
+              else:
+                  await interaction.followup.send(
+                      "❌ Error al procesar tu solicitud. Intenta de nuevo.", ephemeral=True)
+          except:
+              pass
+          print(f"Error general en create_ticket_with_category: {e}")
 
   async def update_ticket_panel(self, guild):
       """Actualizar el panel de tickets con el contador actual y botones dinámicos"""
@@ -2036,30 +2114,87 @@ class CloseTicketView(discord.ui.View):
   def __init__(self):
       super().__init__(timeout=None)
 
+  async def on_error(self, interaction: discord.Interaction, error: Exception, item: discord.ui.Item) -> None:
+      """Manejar errores de interacción"""
+      try:
+          if not interaction.response.is_done():
+              await interaction.response.send_message(
+                  "❌ Error al procesar la acción. Intenta de nuevo.",
+                  ephemeral=True
+              )
+          else:
+              await interaction.followup.send(
+                  "❌ Error al procesar la acción. Intenta de nuevo.",
+                  ephemeral=True
+              )
+      except:
+          pass
+      print(f"Error en CloseTicketView: {error}")
+
   @discord.ui.button(label='🔒 Cerrar Ticket',
                      style=discord.ButtonStyle.red,
                      custom_id='close_ticket')
   async def close_ticket(self, interaction: discord.Interaction,
                          button: discord.ui.Button):
-      channel = interaction.channel
+      try:
+          channel = interaction.channel
 
-      # Confirmar cierre
-      embed = discord.Embed(
-          title="⚠️ Confirmar Cierre",
-          description=
-          "¿Estás seguro de que quieres cerrar este ticket?\n\n**Esta acción no se puede deshacer.**",
-          color=discord.Color.orange())
+          # Confirmar cierre
+          embed = discord.Embed(
+              title="⚠️ Confirmar Cierre",
+              description=
+              "¿Estás seguro de que quieres cerrar este ticket?\n\n**Esta acción no se puede deshacer.**",
+              color=discord.Color.orange())
 
-      confirm_view = ConfirmCloseView()
-      await interaction.response.send_message(embed=embed,
+          confirm_view = ConfirmCloseView()
+          
+          if not interaction.response.is_done():
+              await interaction.response.send_message(embed=embed,
+                                                      view=confirm_view,
+                                                      ephemeral=True)
+          else:
+              await interaction.followup.send(embed=embed,
                                               view=confirm_view,
                                               ephemeral=True)
+      except Exception as e:
+          try:
+              if not interaction.response.is_done():
+                  await interaction.response.send_message(
+                      "❌ Error al procesar el cierre. Intenta de nuevo.", ephemeral=True)
+              else:
+                  await interaction.followup.send(
+                      "❌ Error al procesar el cierre. Intenta de nuevo.", ephemeral=True)
+          except:
+              pass
+          print(f"Error en close_ticket: {e}")
 
 
 class ConfirmCloseView(discord.ui.View):
 
   def __init__(self):
-      super().__init__(timeout=60)
+      super().__init__(timeout=300)  # 5 minutos para confirmar
+
+  async def on_timeout(self):
+      """Manejar timeout de confirmación"""
+      for item in self.children:
+          item.disabled = True
+
+  async def on_error(self, interaction: discord.Interaction, error: Exception, item: discord.ui.Item) -> None:
+      """Manejar errores de interacción"""
+      try:
+          if not interaction.response.is_done():
+              await interaction.response.send_message(
+                  "❌ Error al procesar la confirmación. Intenta de nuevo.",
+                  ephemeral=True
+              )
+          else:
+              await interaction.followup.send(
+                  "❌ Error al procesar la confirmación. Intenta de nuevo.",
+                  ephemeral=True
+              )
+      except:
+          pass
+      print(f"Error en ConfirmCloseView: {error}")
 
   @discord.ui.button(label='✅ Sí, cerrar',
                      style=discord.ButtonStyle.red,
@@ -2343,11 +2478,11 @@ class TicketCategoryMenuView(discord.ui.View):
       embed.add_field(name="📌 Título",
                       value=f"```{panel_config['title']}```",
                       inline=False)
-      
+
       embed.add_field(name="📝 Descripción",
                       value=f"```{panel_config['description'][:500]}{'...' if len(panel_config['description']) > 500 else ''}```",
                       inline=False)
-      
+
       embed.add_field(name="🔗 Footer",
                       value=f"```{panel_config['footer']}```",
                       inline=False)
@@ -2600,7 +2735,7 @@ async def ticket_add_category(interaction: discord.Interaction,
 
   # Generar ID único para la categoría
   category_id = name.lower().replace(" ", "_").replace("-", "_")
-  
+
   # Asegurar que el ID sea único
   original_id = category_id
   counter = 1
@@ -2708,7 +2843,7 @@ async def ticket_edit_category(interaction: discord.Interaction,
       title="✅ Categoría Editada",
       description=f"Se ha editado la categoría **{category_id}** exitosamente.",
       color=discord.Color.blue())
-  
+
   embed.add_field(name="🆔 ID", value=f"`{category_id}`", inline=True)
   embed.add_field(name="📛 Nombre", 
                   value=f"{old_name} → {category['name']}" if name else category["name"], 
@@ -2865,7 +3000,7 @@ async def ticket_remove_category(interaction: discord.Interaction, category_id: 
       title="✅ Categoría Eliminada",
       description=f"Se ha eliminado la categoría **{category_name}** exitosamente.",
       color=discord.Color.green())
-  
+
   embed.add_field(name="🆔 ID eliminado", value=f"`{category_id}`", inline=True)
   embed.add_field(name="📊 Categorías restantes", value=f"{len(categories)}", inline=True)
 
@@ -2898,11 +3033,11 @@ async def ticket_panel_title(interaction: discord.Interaction, title: str):
       title="✅ Título del Panel Actualizado",
       description=f"Se ha cambiado el título del panel de tickets.",
       color=discord.Color.green())
-  
+
   embed.add_field(name="📌 Nuevo Título",
                   value=f"```{title}```",
                   inline=False)
-  
+
   embed.add_field(name="🔄 Siguiente Paso",
                   value="Los paneles existentes se actualizarán automáticamente. Para aplicar cambios inmediatamente, crea un nuevo panel con `/ticket_setup`.",
                   inline=False)
@@ -2936,11 +3071,11 @@ async def ticket_panel_description(interaction: discord.Interaction, description
       title="✅ Descripción del Panel Actualizada",
       description=f"Se ha cambiado la descripción del panel de tickets.",
       color=discord.Color.green())
-  
+
   embed.add_field(name="📝 Nueva Descripción",
                   value=f"```{description[:500]}{'...' if len(description) > 500 else ''}```",
                   inline=False)
-  
+
   embed.add_field(name="🔄 Siguiente Paso",
                   value="Los paneles existentes se actualizarán automáticamente. Para aplicar cambios inmediatamente, crea un nuevo panel con `/ticket_setup`.",
                   inline=False)
@@ -2974,11 +3109,11 @@ async def ticket_panel_footer(interaction: discord.Interaction, footer: str):
       title="✅ Footer del Panel Actualizado",
       description=f"Se ha cambiado el footer del panel de tickets.",
       color=discord.Color.green())
-  
+
   embed.add_field(name="🔗 Nuevo Footer",
                   value=f"```{footer}```",
                   inline=False)
-  
+
   embed.add_field(name="🔄 Siguiente Paso",
                   value="Los paneles existentes se actualizarán automáticamente. Para aplicar cambios inmediatamente, crea un nuevo panel con `/ticket_setup`.",
                   inline=False)
@@ -3000,14 +3135,14 @@ async def ticket_panel_reset(interaction: discord.Interaction):
       return
 
   guild_id = interaction.guild.id
-  
+
   # Restaurar configuración por defecto
   default_config = {
       "title": "🎫 Sistema de Tickets de Soporte",
       "description": "**¿Necesitas ayuda?** Selecciona una categoría abajo para crear tu ticket.\n\n🔹 **¿Para qué usar los tickets?**\n• Reportar problemas\n• Solicitar ayuda\n• Consultas privadas\n• Sugerencias\n\n⏱️ **Tiempo de respuesta promedio:** 1-24 horas",
       "footer": "Selecciona una categoría para crear tu ticket • Panel actualizado automáticamente"
   }
-  
+
   set_panel_config(guild_id, 
                    title=default_config["title"],
                    description=default_config["description"], 
@@ -3017,11 +3152,11 @@ async def ticket_panel_reset(interaction: discord.Interaction):
       title="🔄 Panel Restaurado",
       description="Se ha restaurado el texto por defecto del panel de tickets.",
       color=discord.Color.blue())
-  
+
   embed.add_field(name="✅ Cambios Aplicados",
                   value="• Título restaurado\n• Descripción restaurada\n• Footer restaurado",
                   inline=False)
-  
+
   embed.add_field(name="🔄 Actualización",
                   value="Los paneles existentes se actualizarán automáticamente.",
                   inline=False)
@@ -3053,11 +3188,11 @@ async def ticket_panel_view(interaction: discord.Interaction):
   embed.add_field(name="📌 Título",
                   value=f"```{panel_config['title']}```",
                   inline=False)
-  
+
   embed.add_field(name="📝 Descripción",
                   value=f"```{panel_config['description'][:1000]}{'...' if len(panel_config['description']) > 1000 else ''}```",
                   inline=False)
-  
+
   embed.add_field(name="🔗 Footer",
                   value=f"```{panel_config['footer']}```",
                   inline=False)
@@ -3092,11 +3227,11 @@ async def tpanel_command(interaction: discord.Interaction):
   embed.add_field(name="📌 Título Actual",
                   value=f"```{panel_config['title']}```",
                   inline=False)
-  
+
   embed.add_field(name="📝 Descripción Actual",
                   value=f"```{panel_config['description'][:500]}{'...' if len(panel_config['description']) > 500 else ''}```",
                   inline=False)
-  
+
   embed.add_field(name="🔗 Footer Actual",
                   value=f"```{panel_config['footer']}```",
                   inline=False)
@@ -3152,9 +3287,9 @@ async def ticket_list_categories(interaction: discord.Interaction):
           'purple': '🟣',
           'orange': '🟠'
       }
-      
+
       emoji = color_emoji.get(cat_data.get('color', 'blue'), '🔵')
-      
+
       embed.add_field(
           name=f"{emoji} {cat_data['name']}",
           value=f"**ID:** `{cat_id}`\n**Descripción:** {cat_data['description']}\n**Color:** {cat_data.get('color', 'blue')}",
